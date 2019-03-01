@@ -1,7 +1,8 @@
 import os
 import wfdb
 import pickle
-from ecg import ECG
+import numpy as np
+from data_loader.ecg import ECG
 from utils.dirs import create_dirs, is_empty, clear_dir 
 
 class DatabaseProvider:
@@ -22,20 +23,24 @@ class DatabaseProvider:
         return self.__load_ecgs(db_path)
 
     def __fetch_ecg(self, record_name):
-        rec_data = wfdb.rdrecord(record_name, pb_dir=self._db_name, physical=True)
+        rec_data = wfdb.rdrecord(record_name, pb_dir=self._db_name, channels=[0], physical=True)
         rec_annotation = wfdb.io.rdann(record_name, extension = "atr", pb_dir=self._db_name)
         print("downloaded {} record data".format(record_name))
 
         if len(rec_annotation.aux_note) != len(rec_annotation.sample):
             raise IndexError("Sample length and aux_note length not match. Reocrd name: {}".format(record_name))
 
-        annotations = [{
-            "label": ann[0].rstrip["\x00"],
-            "start": ann[1],
-            "end": ann[2]
-        } for ann in zip(rec_annotation.aux_note, rec_annotation.sample, rec_annotation.sample[1:].append(rec_data.sig_len))]
+        ann_with_samples = zip(rec_annotation.aux_note,
+            rec_annotation.sample,
+            np.append(rec_annotation.sample[1:], rec_data.sig_len))
 
-        return ECG(record_name, rec_annotation.sample, annotations)
+        annotations = [{
+            "label": ann[0].rstrip("\x00"),
+            "start": ann[1],
+            "end": ann[2] - 1
+        } for ann in ann_with_samples]
+
+        return ECG(record_name, rec_data.p_signal, annotations)
 
     def __save_ecgs(self, ecg_list, db_path):
         fpath = os.path.join(db_path, "records.pkl")

@@ -1,4 +1,4 @@
-from database_provider import DatabaseProvider
+from data_loader.database_provider import DatabaseProvider
 from utils.bitmask import to_bitmask, invert_mask
 
 class Dataset:
@@ -23,29 +23,25 @@ class Dataset:
 
         ecgs_samples = [{
             "name": ecg.name,
-            "sample_groups": ecg.get_samples(self.config.sample_len, self.config.label_filter)
+            "sample_groups": ecg.get_samples(self.config.sample_len, self.config.label_filter, self.config.label_map)
         } for ecg in ecgs]
 
         split_map = self.__calculate_split_map(ecgs_samples)
 
-        train_x = []
-        train_y = []
-        test_x = []
-        test_y = []
-
-        for label, sets in split_map.items():
-            train_x.extend([sample["signal"] for sample in ecgs_samples[name][label] for name in sets["train"]])
-            test_x.extend([sample["signal"] for sample in ecgs_samples[name][label] for name in sets["test"]])
-
-            train_y.extend([sample["label"] for sample in ecgs_samples[name][label] for name in sets["train"]])
-            test_y.extend([sample["label"] for sample in ecgs_samples[name][label] for name in sets["test"]])
-
         dataset = {}
-        dataset["train"] = {}
-        dataset["train"]["x"] = train_x
-        dataset["train"]["y"] = train_y
-        dataset["test"]["x"] = test_x
-        dataset["test"]["y"] = test_y
+       
+        for set_name in ["train", "test"]:
+            dataset[set_name] = {}
+            dataset[set_name]["x"] = []
+            dataset[set_name]["y"] = []
+
+            for label, sets in split_map.items():
+                x = [ecg_samples["sample_groups"][label] for ecg_samples in ecgs_samples if ecg_samples["name"] in sets[set_name]]
+                x_flatten = [item for sublist in x for item in sublist]
+                y = [label for _ in x_flatten]
+                
+                dataset[set_name]["x"].extend(x_flatten)
+                dataset[set_name]["y"].extend(y)
 
         return dataset
 
@@ -60,7 +56,7 @@ class Dataset:
         label_stats = {}
 
         for ecg_samples in ecgs_samples:
-            for label, samples in ecg_samples.items():
+            for label, samples in ecg_samples["sample_groups"].items():
                 if not label in label_stats:
                     label_stats[label] = []
                 
@@ -76,7 +72,7 @@ class Dataset:
             groups_num = len(stats)
             total_len = sum(group["count"] for group in stats)
 
-            for i in range(2 ** groups_num):
+            for i in range(1, 2 ** groups_num):
                 mask = to_bitmask(i, groups_num)
                 subgroup_len = _groups_length(stats, mask)
                 curr_ratio = subgroup_len / total_len

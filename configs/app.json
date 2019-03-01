@@ -1,5 +1,9 @@
 {
     "sample_len": 750,
     "label_filter": ["(ASYS", "(N", "(VF", "(VT"],
+    "label_map": {
+        "(NSR" : "(N",
+        "(VFIB": "(VF"
+    },
     "split_ratio": 0.2
 }

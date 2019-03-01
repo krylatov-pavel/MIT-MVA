@@ -2,7 +2,10 @@ from utils.config import process_config
 from data_loader.dataset import Dataset
 
 def main():
-    config, _ = process_config("app")
+    config = process_config("app")
     dataset = Dataset(config)
 
-    print(dataset.train["y"])
+    print(len(dataset.train["x"][0]))
+
+if __name__ == "__main__":
+    main()
