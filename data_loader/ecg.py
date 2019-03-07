@@ -4,12 +4,12 @@ class ECG:
         self.signals = signals
         self.annotations = annotations
 
-    def get_samples(self, sample_len, label_filter, label_map):
+    def get_samples(self, sample_len, signal_type_filter, signal_type_map):
         for ann in self.annotations:
-            if ann["label"] in label_map:
-                ann["label"] = label_map[ann["label"]]
+            if ann["label"] in signal_type_map:
+                ann["label"] = signal_type_map[ann["label"]]
 
-        filtered_annotations = [ann for ann in self.annotations if ann["label"] in label_filter]
+        filtered_annotations = [ann for ann in self.annotations if ann["label"] in signal_type_filter]
 
         #dict, "label" : [[0.2323, 0.1231, ...], ...]
         sample_groups = {} 

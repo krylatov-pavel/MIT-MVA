@@ -25,4 +25,5 @@ def process_config(name):
     config, _ = get_config_from_json(name)
     config.db_name = "vfdb"
     config.bypass_cache = False
+    config.model_dir = os.path.join("data/experiments", config.model_name, config.exp_name)
     return config
