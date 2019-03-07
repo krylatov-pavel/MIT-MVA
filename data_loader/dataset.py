@@ -8,7 +8,17 @@ class Dataset:
         self.config = config
         self._signal_type_to_label = {sig_type:i for i, sig_type in enumerate(config.signal_type_filter)}
         self._label_to_signal_type = [sig_type for sig_type, i in self._signal_type_to_label.items()]
-        self._dataset = None
+        print("building dataset")
+        self._dataset = self._build_dataset()
+        print("building dataset complete")
+
+    def dataset_stats(self, mode):
+        print(mode)
+        total_len = len(self._dataset[mode]["y"])
+        for i in range(len(self.config.signal_type_filter)):
+            label_num = len([label for label in self._dataset[mode]["y"] if label == i])
+            print("class {} {}%".format(i, 100 * label_num / total_len))
+        return
 
     def get_input_fn(self, mode):
         def generator_fn():
@@ -16,28 +26,19 @@ class Dataset:
                 yield (self._dataset[mode]["x"][i], self._dataset[mode]["y"][i])
 
         def input_fn():
-            if not self._dataset:
-                print("building dataset")
-                self._dataset = self._build_dataset()
-                print("building dataset complete")
-            
-            #features = self._dataset[mode]["x"]
-            #labels = self._dataset[mode]["y"]
-            #features = np.random.random((1000, 750, 1))
-            #labels = np.ones((1000))
-
             batch_size = self._batch_size(mode)
             
-            #dataset = tf.data.Dataset.from_tensor_slices((features, labels))
             dataset = tf.data.Dataset.from_generator(
                 generator_fn,
                 (tf.float32, tf.int64),
-                (tf.TensorShape((750, 1)), tf.TensorShape(()))
+                (tf.TensorShape((self.config.sample_len, 1)), tf.TensorShape(()))
             )
 
             if mode == tf.estimator.ModeKeys.TRAIN:
-                dataset = dataset.shuffle(len(self._dataset[mode]["x"]))
-                dataset = dataset.repeat()
+                dataset = dataset.shuffle(
+                    buffer_size=len(self._dataset[mode]["x"]),
+                    reshuffle_each_iteration=True
+                ).repeat()
             
             dataset = dataset.batch(batch_size)
 

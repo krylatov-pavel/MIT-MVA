@@ -30,15 +30,7 @@ class CNNModel(BaseModel):
 
         return model_fn
 
-    def _f1_score(self, labels, predictions):
-        precision = tf.metrics.precision(labels, predictions)
-        recall = tf.metrics.recall(labels, predictions)
-        denominator = precision + recall
-        f1_score = 2 * precision * recall / denominator
-        
-        return f1_score    
-
-    def _network_fn(self, features, mode):
+    def _network_fn(self, features, mode, scope="MITConvNet"):
         def calc_output_len(input_len, conv_layers_num, pool_size):
             input = input_len if conv_layers_num == 1 else calc_output_len(input_len, conv_layers_num - 1, pool_size)
             return int(math.ceil(input / pool_size))

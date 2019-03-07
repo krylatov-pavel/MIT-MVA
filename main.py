@@ -9,9 +9,10 @@ def run_experiment(config):
 
     run_config = tf.estimator.RunConfig(
         model_dir=config.model_dir,
-        save_summary_steps=2,
-        log_step_count_steps=2,
-        save_checkpoints_steps=10,
+        save_summary_steps=10,
+        log_step_count_steps=10,
+        save_checkpoints_steps=100,
+        keep_checkpoint_max=5
     )
 
     classifier = tf.estimator.Estimator(
@@ -21,14 +22,20 @@ def run_experiment(config):
     )
 
     dataset = Dataset(config)
+    
+    train_spec = tf.estimator.TrainSpec(
+        input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.TRAIN),
+        max_steps=config.num_epochs
+    )
 
-    print("start learning")
+    eval_spec = tf.estimator.EvalSpec(
+        input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.EVAL),
+        steps=None,
+        start_delay_secs=10,  # Start evaluating after 10 sec.
+        throttle_secs=30
+    )
 
-    classifier.train(dataset.get_input_fn(tf.estimator.ModeKeys.TRAIN), max_steps=config.num_epochs)
-
-    print("completed\nstart evaluating")
-
-    classifier.evaluate(dataset.get_input_fn(tf.estimator.ModeKeys.EVAL))
+    tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
     print("completed")
     
