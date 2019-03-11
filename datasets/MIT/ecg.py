@@ -1,4 +1,4 @@
-class ECG:
+class ECG(object):
     def __init__(self, name, signals, annotations):
         self.name = name
         self.signals = signals

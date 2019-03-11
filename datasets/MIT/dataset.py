@@ -1,12 +1,13 @@
 import tensorflow as tf
 import numpy as np
-from data_loader.database_provider import DatabaseProvider
+from datasets.base_dataset import BaseDataset
+from datasets.MIT.database_provider import DatabaseProvider
 from utils.bitmask import to_bitmask, invert_mask
 
-class Dataset:
-    def __init__(self, config):
-        self.config = config
-        self._signal_type_to_label = {sig_type:i for i, sig_type in enumerate(config.signal_type_filter)}
+class Dataset(BaseDataset):
+    def __init__(self, params):
+        self.params = params
+        self._signal_type_to_label = {sig_type:i for i, sig_type in enumerate(params.signal_type_filter)}
         self._label_to_signal_type = [sig_type for sig_type, i in self._signal_type_to_label.items()]
         print("building dataset")
         self._dataset = self._build_dataset()
@@ -15,7 +16,7 @@ class Dataset:
     def dataset_stats(self, mode):
         print(mode)
         total_len = len(self._dataset[mode]["y"])
-        for i in range(len(self.config.signal_type_filter)):
+        for i in range(len(self.params.signal_type_filter)):
             label_num = len([label for label in self._dataset[mode]["y"] if label == i])
             print("class {} {}%".format(i, 100 * label_num / total_len))
         return
@@ -31,7 +32,7 @@ class Dataset:
             dataset = tf.data.Dataset.from_generator(
                 generator_fn,
                 (tf.float32, tf.int64),
-                (tf.TensorShape((self.config.sample_len, 1)), tf.TensorShape(()))
+                (tf.TensorShape((self.params.sample_len, 1)), tf.TensorShape(()))
             )
 
             if mode == tf.estimator.ModeKeys.TRAIN:
@@ -48,16 +49,16 @@ class Dataset:
 
     def _batch_size(self, mode):
         if mode == tf.estimator.ModeKeys.TRAIN:
-            return self.config.train_batch_size
+            return self.params.train_batch_size
         elif mode == tf.estimator.ModeKeys.EVAL:
-            return self.config.eval_batch_size
+            return self.params.eval_batch_size
         
     def _build_dataset(self):
-        ecgs = DatabaseProvider(self.config.db_name).get_ecgs(self.config.bypass_cache)
+        ecgs = DatabaseProvider(self.params.db_name).get_ecgs(self.params.bypass_cache)
 
         ecgs_samples = [{
             "name": ecg.name,
-            "sample_groups": ecg.get_samples(self.config.sample_len, self.config.signal_type_filter, self.config.signal_type_map)
+            "sample_groups": ecg.get_samples(self.params.sample_len, self.params.signal_type_filter, self.params.signal_type_map)
         } for ecg in ecgs]
 
         split_map = self._calculate_split_map(ecgs_samples)
@@ -110,7 +111,7 @@ class Dataset:
                 mask = to_bitmask(i, groups_num)
                 subgroup_len = _groups_length(stats, mask)
                 curr_ratio = subgroup_len / total_len
-                curr_combination_error = abs(curr_ratio - self.config.split_ratio)
+                curr_combination_error = abs(curr_ratio - self.params.split_ratio)
 
                 if curr_combination_error < best_combination_error:
                     best_combination_error = curr_combination_error

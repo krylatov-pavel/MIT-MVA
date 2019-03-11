@@ -1,14 +1,14 @@
 import tensorflow as tf
-from utils.config import process_config
+import os
+from utils.helpers import get_config_from_json, get_class
 from utils.dirs import create_dirs
-from data_loader.dataset import Dataset
-from models.cnn_model import CNNModel
 
-def run_experiment(config):
-    model = CNNModel(config)
+def run_experiment(config, model_dir):
+    model = get_class(config.model.name)(config.model.hparams)
+    dataset = get_class(config.dataset.name)(config.dataset.params)
 
     run_config = tf.estimator.RunConfig(
-        model_dir=config.model_dir,
+        model_dir=model_dir,
         save_summary_steps=10,
         log_step_count_steps=10,
         save_checkpoints_steps=100,
@@ -17,15 +17,13 @@ def run_experiment(config):
 
     classifier = tf.estimator.Estimator(
         model_fn=model.build_model_fn(),
-        model_dir=config.model_dir,
+        model_dir=model_dir,
         config=run_config
     )
 
-    dataset = Dataset(config)
-    
     train_spec = tf.estimator.TrainSpec(
         input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.TRAIN),
-        max_steps=config.num_epochs
+        max_steps=config.model.hparams.num_epochs
     )
 
     eval_spec = tf.estimator.EvalSpec(
@@ -42,11 +40,12 @@ def run_experiment(config):
     return
 
 def main():
-    config = process_config("app")
+    config = get_config_from_json("CNNModel")
 
-    create_dirs([config.model_dir])
+    model_dir = os.path.join("data/experiments", config.model.name.split(".")[-1], config.experiment)
+    create_dirs([model_dir])
 
-    run_experiment(config)
+    run_experiment(config, model_dir)
 
 if __name__ == "__main__":
      main()

@@ -2,10 +2,10 @@ import os
 import wfdb
 import pickle
 import numpy as np
-from data_loader.ecg import ECG
+from datasets.MIT.ecg import ECG
 from utils.dirs import create_dirs, is_empty, clear_dir 
 
-class DatabaseProvider:
+class DatabaseProvider(object):
     def __init__(self, db_name):
         self._db_name = db_name
 

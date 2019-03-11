@@ -1,3 +1,3 @@
 class BaseModel(object):
-    def __init__(self):
-        self.test = "Hello world"
+    def build_model_fn(self):
+        raise NotImplementedError('build_model_fn not implemented in BaseModel.')
