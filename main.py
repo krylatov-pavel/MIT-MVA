@@ -1,5 +1,6 @@
 import tensorflow as tf
 import os
+import argparse
 from utils.helpers import get_config_from_json, get_class
 from utils.dirs import create_dirs
 
@@ -9,10 +10,10 @@ def run_experiment(config, model_dir):
 
     run_config = tf.estimator.RunConfig(
         model_dir=model_dir,
-        save_summary_steps=10,
-        log_step_count_steps=10,
-        save_checkpoints_steps=100,
-        keep_checkpoint_max=5
+        save_summary_steps=100,
+        log_step_count_steps=100,
+        save_checkpoints_steps=500, #evaluation occurs after checkpoint save
+        keep_checkpoint_max=3 
     )
 
     classifier = tf.estimator.Estimator(
@@ -29,10 +30,11 @@ def run_experiment(config, model_dir):
     eval_spec = tf.estimator.EvalSpec(
         input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.EVAL),
         steps=None,
-        start_delay_secs=10,  # Start evaluating after 10 sec.
-        throttle_secs=30
+        start_delay_secs=1,  # Start evaluating after 10 sec.
+        throttle_secs=1
     )
-
+    
+    tf.logging.set_verbosity(tf.logging.INFO)
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
     print("completed")
@@ -40,12 +42,19 @@ def run_experiment(config, model_dir):
     return
 
 def main():
-    config = get_config_from_json("CNNModel")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', '-c', help="Config file name (wihout extension)", type=str)
+    args = parser.parse_args()
 
-    model_dir = os.path.join("data/experiments", config.model.name.split(".")[-1], config.experiment)
-    create_dirs([model_dir])
+    if args.config:
+        config = get_config_from_json(args.config)
 
-    run_experiment(config, model_dir)
+        model_dir = os.path.join("data/experiments", config.model.name.split(".")[-1], config.experiment)
+        create_dirs([model_dir])
+
+        run_experiment(config, model_dir)
+    else:
+        print("configuration file name is required. use -h for help")
 
 if __name__ == "__main__":
      main()
