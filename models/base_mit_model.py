@@ -11,21 +11,47 @@ class BaseMitModel(BaseModel):
             logits = self._network_fn(features, mode)
             predictions = tf.argmax(logits, axis=-1)
 
+            if mode == tf.estimator.ModeKeys.PREDICT:
+                predictions = {
+                    'class_ids': predictions[:, tf.newaxis],
+                    'probabilities': tf.nn.softmax(logits),
+                    'logits': logits,
+                }
+
+                return tf.estimator.EstimatorSpec(
+                    mode=mode,
+                    predictions=predictions
+                )
+
             loss, train_op = self._make_train_op(logits, labels)
 
-            eval_metric_ops = {
-                "accuracy": tf.metrics.accuracy(labels, predictions),
-                "precision": tf.metrics.precision(labels, predictions),
-                "recall": tf.metrics.recall(labels, predictions)
-            }
+            if mode == tf.estimator.ModeKeys.TRAIN:
+                return tf.estimator.EstimatorSpec(
+                    mode=mode,
+                    loss=loss,
+                    train_op=train_op
+                )
 
-            return tf.estimator.EstimatorSpec(
-                mode=mode,
-                predictions=predictions,
-                loss=loss,
-                train_op=train_op,
-                eval_metric_ops=eval_metric_ops
-            )
+            elif mode == tf.estimator.ModeKeys.EVAL:
+                accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions)
+                precision = tf.metrics.precision(labels=labels, predictions=predictions)
+                recall = tf.metrics.recall(labels=labels, predictions=predictions)
+
+                tf.summary.scalar('my_accuracy', accuracy)
+                tf.summary.scalar('my_precision', precision)
+                tf.summary.scalar('my_recall', recall)
+
+                eval_metric_ops = {
+                    "accuracy": accuracy,
+                    "precision": precision,
+                    "recall": recall
+                }
+
+                return tf.estimator.EstimatorSpec(
+                    mode=mode,
+                    loss=loss,
+                    eval_metric_ops=eval_metric_ops
+                )
 
         return model_fn
 

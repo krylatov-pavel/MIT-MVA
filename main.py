@@ -37,8 +37,14 @@ def run_experiment(config, model_dir):
     tf.logging.set_verbosity(tf.logging.INFO)
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
-    print("completed")
+    print("Predictions:")
+    predictions = classifier.predict(
+        input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.PREDICT)
+    )
     
+    for pred_dict in predictions:
+        print(pred_dict)
+
     return
 
 def main():

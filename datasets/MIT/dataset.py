@@ -4,6 +4,10 @@ from datasets.base_dataset import BaseDataset
 from datasets.MIT.database_provider import DatabaseProvider
 from utils.bitmask import to_bitmask, invert_mask
 
+TRAIN = tf.estimator.ModeKeys.TRAIN
+EVAL = tf.estimator.ModeKeys.EVAL
+PREDICT = tf.estimator.ModeKeys.PREDICT
+
 class Dataset(BaseDataset):
     def __init__(self, params):
         self.params = params
@@ -23,24 +27,34 @@ class Dataset(BaseDataset):
 
     def get_input_fn(self, mode):
         def generator_fn():
-            for i in range(len(self._dataset[mode]["x"])):
-                yield (self._dataset[mode]["x"][i], self._dataset[mode]["y"][i])
+            if mode in [TRAIN, EVAL]:
+                for i in range(len(self._dataset[mode]["x"])):
+                    yield (self._dataset[mode]["x"][i], self._dataset[mode]["y"][i])
+            elif mode == PREDICT:
+                for i in range(len(self._dataset[EVAL]["x"])):
+                    yield self._dataset[EVAL]
 
         def input_fn():
-            batch_size = self._batch_size(mode)
-            
-            dataset = tf.data.Dataset.from_generator(
-                generator_fn,
-                (tf.float32, tf.int64),
-                (tf.TensorShape((self.params.sample_len, 1)), tf.TensorShape(()))
-            )
+            if mode in [TRAIN, EVAL]:
+                dataset = tf.data.Dataset.from_generator(
+                    generator_fn,
+                    (tf.float32, tf.int64),
+                    (tf.TensorShape((self.params.sample_len, 1)), tf.TensorShape(()))
+                )
+            elif mode == PREDICT:
+                dataset = tf.data.Dataset.from_generator(
+                    generator_fn,
+                    (tf.float32),
+                    (tf.TensorShape((self.params.sample_len, 1)))
+                )
 
-            if mode == tf.estimator.ModeKeys.TRAIN:
+            if mode == TRAIN:
                 dataset = dataset.shuffle(
                     buffer_size=len(self._dataset[mode]["x"]),
                     reshuffle_each_iteration=True
                 ).repeat()
             
+            batch_size = self._batch_size(mode)
             dataset = dataset.batch(batch_size)
 
             return dataset
@@ -48,10 +62,12 @@ class Dataset(BaseDataset):
         return input_fn
 
     def _batch_size(self, mode):
-        if mode == tf.estimator.ModeKeys.TRAIN:
+        if mode == TRAIN:
             return self.params.train_batch_size
-        elif mode == tf.estimator.ModeKeys.EVAL:
+        if mode == EVAL:
             return self.params.eval_batch_size
+        elif mode == PREDICT:
+            return 1
         
     def _build_dataset(self):
         ecgs = DatabaseProvider(self.params.db_name).get_ecgs(self.params.bypass_cache)
@@ -65,7 +81,7 @@ class Dataset(BaseDataset):
 
         dataset = {}
        
-        for set_name in [tf.estimator.ModeKeys.TRAIN, tf.estimator.ModeKeys.EVAL]:
+        for set_name in [TRAIN, EVAL]:
             dataset[set_name] = {}
             dataset[set_name]["x"] = []
             dataset[set_name]["y"] = []
@@ -118,8 +134,8 @@ class Dataset(BaseDataset):
                     best_combination = mask.copy()
             
             split_map[sig_type] = {
-                tf.estimator.ModeKeys.TRAIN: [group["name"] for i, group in enumerate(stats) if best_combination[i] == 0],
-                tf.estimator.ModeKeys.EVAL: [group["name"] for i, group in enumerate(stats) if best_combination[i] == 1]
+                TRAIN: [group["name"] for i, group in enumerate(stats) if best_combination[i] == 0],
+                EVAL: [group["name"] for i, group in enumerate(stats) if best_combination[i] == 1]
             }
 
         return split_map
