@@ -34,7 +34,7 @@ def run_experiment(config, model_dir):
         throttle_secs=1
     )
     
-    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.logging.set_verbosity(tf.logging.ERROR)
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
     print("Predictions:")
@@ -43,7 +43,7 @@ def run_experiment(config, model_dir):
     )
     
     for pred_dict in predictions:
-        print(pred_dict)
+        print(pred_dict["class_ids"][0])
 
     return
 

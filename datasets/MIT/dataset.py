@@ -31,8 +31,10 @@ class Dataset(BaseDataset):
                 for i in range(len(self._dataset[mode]["x"])):
                     yield (self._dataset[mode]["x"][i], self._dataset[mode]["y"][i])
             elif mode == PREDICT:
-                for i in range(len(self._dataset[EVAL]["x"])):
-                    yield self._dataset[EVAL]
+                dataset_slice = self._dataset[EVAL]["x"]    
+
+                for i in range(len(dataset_slice)):
+                    yield dataset_slice[i]
 
         def input_fn():
             if mode in [TRAIN, EVAL]:
