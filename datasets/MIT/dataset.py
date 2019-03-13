@@ -27,28 +27,15 @@ class Dataset(BaseDataset):
 
     def get_input_fn(self, mode):
         def generator_fn():
-            if mode in [TRAIN, EVAL]:
-                for i in range(len(self._dataset[mode]["x"])):
-                    yield (self._dataset[mode]["x"][i], self._dataset[mode]["y"][i])
-            elif mode == PREDICT:
-                dataset_slice = self._dataset[EVAL]["x"]    
-
-                for i in range(len(dataset_slice)):
-                    yield dataset_slice[i]
+            for i in range(len(self._dataset[mode]["x"])):
+                yield (self._dataset[mode]["x"][i], self._dataset[mode]["y"][i])
 
         def input_fn():
-            if mode in [TRAIN, EVAL]:
-                dataset = tf.data.Dataset.from_generator(
-                    generator_fn,
-                    (tf.float32, tf.int64),
-                    (tf.TensorShape((self.params.sample_len, 1)), tf.TensorShape(()))
-                )
-            elif mode == PREDICT:
-                dataset = tf.data.Dataset.from_generator(
-                    generator_fn,
-                    (tf.float32),
-                    (tf.TensorShape((self.params.sample_len, 1)))
-                )
+            dataset = tf.data.Dataset.from_generator(
+                generator_fn,
+                (tf.float32, tf.int64),
+                (tf.TensorShape((self.params.sample_len, 1)), tf.TensorShape(()))
+            )
 
             if mode == TRAIN:
                 dataset = dataset.shuffle(
@@ -63,13 +50,37 @@ class Dataset(BaseDataset):
             
         return input_fn
 
+    def get_predict_data(self):
+        def get_generator_fn(dataset_slice):
+            def generator_fn():
+                for i in range(len(dataset_slice["x"])):
+                    yield dataset_slice["x"][i]
+
+            return generator_fn
+
+        def get_input_fn(dataset_slice):
+            def input_fn():
+                dataset = tf.data.Dataset.from_generator(
+                    get_generator_fn(dataset_slice),
+                    (tf.float32),
+                    (tf.TensorShape((self.params.sample_len, 1)))
+                ).batch(1)
+
+                return dataset
+            
+            return input_fn
+
+        dataset_slice = self._dataset[EVAL]
+        input_fn = get_input_fn(dataset_slice)
+            
+        return input_fn, dataset_slice["y"]
+
+
     def _batch_size(self, mode):
         if mode == TRAIN:
             return self.params.train_batch_size
         if mode == EVAL:
             return self.params.eval_batch_size
-        elif mode == PREDICT:
-            return 1
         
     def _build_dataset(self):
         ecgs = DatabaseProvider(self.params.db_name).get_ecgs(self.params.bypass_cache)

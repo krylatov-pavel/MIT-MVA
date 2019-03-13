@@ -1,7 +1,7 @@
 import tensorflow as tf
 import os
 import argparse
-from utils.helpers import get_config_from_json, get_class
+from utils.helpers import get_config_from_json, get_class, avg_f1_score
 from utils.dirs import create_dirs
 
 def run_experiment(config, model_dir):
@@ -37,14 +37,15 @@ def run_experiment(config, model_dir):
     tf.logging.set_verbosity(tf.logging.ERROR)
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
-    print("Predictions:")
-    predictions = classifier.predict(
-        input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.PREDICT)
+    predict_input_fn, labels = dataset.get_predict_data()
+    predictions_gen = classifier.predict(
+        input_fn=predict_input_fn
     )
-    
-    for pred_dict in predictions:
-        print(pred_dict["class_ids"][0])
+    predictions = [pred_dict["class_ids"][0] for pred_dict in predictions_gen]
 
+    print("Predictions:")
+    avg_f1_score(labels, predictions)
+    
     return
 
 def main():
