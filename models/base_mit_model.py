@@ -1,6 +1,7 @@
 import tensorflow as tf
 import math
 from models.base_model import BaseModel
+from metrics.precision import Precision
 
 class BaseMitModel(BaseModel):
     def __init__(self, hparams):
@@ -44,7 +45,11 @@ class BaseMitModel(BaseModel):
                 eval_metric_ops = {
                     "accuracy": accuracy,
                     "precision": precision,
-                    "recall": recall
+                    "recall": recall,
+                    "class_precision_0": Precision(0).evaluate(labels, predictions),
+                    "class_precision_1": Precision(1).evaluate(labels, predictions),
+                    "class_precision_2": Precision(2).evaluate(labels, predictions),
+                    "class_precision_3": Precision(3).evaluate(labels, predictions)
                 }
 
                 return tf.estimator.EstimatorSpec(
