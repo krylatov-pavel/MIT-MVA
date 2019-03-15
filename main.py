@@ -34,17 +34,8 @@ def run_experiment(config, model_dir):
         throttle_secs=1
     )
     
-    tf.logging.set_verbosity(tf.logging.ERROR)
+    tf.logging.set_verbosity(tf.logging.INFO)
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
-
-    predict_input_fn, labels = dataset.get_predict_data()
-    predictions_gen = classifier.predict(
-        input_fn=predict_input_fn
-    )
-    predictions = [pred_dict["class_ids"][0] for pred_dict in predictions_gen]
-
-    print("Predictions:")
-    avg_f1_score(labels, predictions)
     
     return
 

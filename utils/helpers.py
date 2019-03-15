@@ -77,6 +77,14 @@ def avg_f1_score(labels, predictions):
         print("precision: ", prec)
         print("recall: ", rec)
         print("f1 score: ", f1_score(prec, rec))
+
+    print("\n\n")
+    for class_name, val in stats.items():
+        print("{} fp: {}  fn: {}".format(class_name, val["fp"], val["fn"]))
+    print("\n\n")
+
+    print("fp sum: {}".format(sum(val["fp"] for val in stats.values())))
+    print("fn sum: {}".format(sum(val["fn"] for val in stats.values())))
                      
     micro_avg_prec = sum(val["tp"] for val in stats.values()) / sum(val["tp"] + val["fp"] + epsilon for val in stats.values())
     micro_avg_recall = sum(val["tp"] for val in stats.values()) / sum(val["tp"] + val["fn"] + epsilon for val in stats.values())

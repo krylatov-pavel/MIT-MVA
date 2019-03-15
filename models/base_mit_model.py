@@ -29,7 +29,13 @@ class BaseMitModel(BaseModel):
 
             loss, train_op = self._make_train_op(logits, labels)
 
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+
             if mode == tf.estimator.ModeKeys.TRAIN:
+                print("update ops graph length: ", len(update_ops))
+                if len(update_ops) > 0:
+                    train_op = tf.group([train_op, update_ops])
+
                 return tf.estimator.EstimatorSpec(
                     mode=mode,
                     loss=loss,
@@ -43,8 +49,7 @@ class BaseMitModel(BaseModel):
                 
                 eval_metric_ops = {
                     "accuracy": accuracy,
-                    "macro_avg_f1_score": MacroAvgF1Score(class_names).evaluate(labels, predictions),
-                    "micro_avg_f1_score": MicroAvgF1Score(class_names).evaluate(labels, predictions)
+                    "macro_avg_f1_score": MacroAvgF1Score(class_names).evaluate(labels, predictions)
                 }
 
                 for class_name in class_names:
