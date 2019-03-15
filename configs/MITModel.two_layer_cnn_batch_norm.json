@@ -1,0 +1,6 @@
+{
+    "model": {
+        "name" : "models.two_layer_cnn_batch_norm.TwoLayerCNNwBatchNorm"
+    },
+    "experiment" : "initial"
+}

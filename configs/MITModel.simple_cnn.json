@@ -1,7 +1,6 @@
 {
     "model": {
         "hparams": {
-            "num_epochs": 10000
         }
     },
     "experiment": "simple_cnn"

@@ -3,7 +3,7 @@
         "name": "models.cnn_model.CNNModel",
         "hparams": {
             "learning_rate": 0.00003,
-            "num_epochs": 100,
+            "num_epochs": 10000,
             "class_num": 4            
         }
     },
