@@ -4,6 +4,7 @@ from models.base_model import BaseModel
 from metrics.precision import Precision
 from metrics.recall import Recall
 from metrics.f1_score_macro_avg import MacroAvgF1Score
+from metrics.f1_score_micro_avg import MicroAvgF1Score
 
 class BaseMitModel(BaseModel):
     def __init__(self, hparams):
@@ -42,7 +43,8 @@ class BaseMitModel(BaseModel):
                 
                 eval_metric_ops = {
                     "accuracy": accuracy,
-                    "macro_avg_f1_score": MacroAvgF1Score(class_names).evaluate(labels, predictions)
+                    "macro_avg_f1_score": MacroAvgF1Score(class_names).evaluate(labels, predictions),
+                    "micro_avg_f1_score": MicroAvgF1Score(class_names).evaluate(labels, predictions)
                 }
 
                 for class_name in class_names:
