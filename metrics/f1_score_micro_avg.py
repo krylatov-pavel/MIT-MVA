@@ -24,6 +24,6 @@ class MicroAvgF1Score(object):
             avg_precision = tp_sum / (tp_sum + tf.reduce_sum(fp_vals, axis=0) + tf.keras.backend.epsilon())
             avg_recall = tp_sum / (tp_sum + tf.reduce_sum(fn_vals, axis=0) + tf.keras.backend.epsilon())
 
-            f1_score = 2 * avg_precision * avg_precision / (avg_precision + avg_recall + tf.keras.backend.epsilon())
+            f1_score = 2 * avg_precision * avg_recall / (avg_precision + avg_recall + tf.keras.backend.epsilon())
 
             return f1_score, update_op
