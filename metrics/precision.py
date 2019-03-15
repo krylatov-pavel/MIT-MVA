@@ -15,4 +15,4 @@ class Precision(object):
 
             precision = tp / (tp + fp + tf.keras.backend.epsilon())
 
-            return precision, update_op    
+            return precision, update_op

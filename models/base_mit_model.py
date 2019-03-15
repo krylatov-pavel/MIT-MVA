@@ -3,6 +3,7 @@ import math
 from models.base_model import BaseModel
 from metrics.precision import Precision
 from metrics.recall import Recall
+from metrics.f1_score_macro_avg import MacroAvgF1Score
 
 class BaseMitModel(BaseModel):
     def __init__(self, hparams):
@@ -36,26 +37,19 @@ class BaseMitModel(BaseModel):
 
             elif mode == tf.estimator.ModeKeys.EVAL:
                 accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions)
-                precision = tf.metrics.precision(labels=labels, predictions=predictions)
-                recall = tf.metrics.recall(labels=labels, predictions=predictions)
 
-                tf.summary.scalar('my_accuracy', accuracy)
-                tf.summary.scalar('my_precision', precision)
-                tf.summary.scalar('my_recall', recall)
-
+                class_names = [int(i) for i in range(self._hparams.class_num)]
+                
                 eval_metric_ops = {
                     "accuracy": accuracy,
-                    "precision": precision,
-                    "recall": recall,
-                    "class_precision_0": Precision(0).evaluate(labels, predictions),
-                    "class_recall_0": Recall(0).evaluate(labels, predictions),
-                    "class_precision_1": Precision(1).evaluate(labels, predictions),
-                    "class_recall_1": Recall(1).evaluate(labels, predictions),
-                    "class_precision_2": Precision(2).evaluate(labels, predictions),
-                    "class_recall_2": Recall(2).evaluate(labels, predictions),
-                    "class_precision_3": Precision(3).evaluate(labels, predictions),
-                    "class_recall_3": Recall(3).evaluate(labels, predictions)
+                    "macro_avg_f1_score": MacroAvgF1Score(class_names).evaluate(labels, predictions)
                 }
+
+                for class_name in class_names:
+                    eval_metric_ops["class_precision_{}".format(class_name)] = \
+                        Precision(class_name).evaluate(labels, predictions)
+                    eval_metric_ops["class_recall_{}".format(class_name)] = \
+                        Recall(class_name).evaluate(labels, predictions)
 
                 return tf.estimator.EstimatorSpec(
                     mode=mode,
