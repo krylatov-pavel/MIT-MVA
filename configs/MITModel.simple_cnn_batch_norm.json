@@ -1,0 +1,9 @@
+{
+    "model": {
+        "name": "models.simple_cnn_batch_norm.SimpleCNNwBatchNorm",
+        "hparams": {
+            "num_epochs": 10000
+        }
+    },
+    "experiment": "simple_cnn"
+}
