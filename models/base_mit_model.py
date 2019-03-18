@@ -74,3 +74,6 @@ class BaseMitModel(BaseModel):
         train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
 
         return loss, train_op
+
+    def _get_hparam(self, name):
+        return name in self._hparams and self._hparams[name]
