@@ -1,10 +1,8 @@
 import tensorflow as tf
 import math
 from models.base_model import BaseModel
-from metrics.precision import Precision
-from metrics.recall import Recall
+from metrics.f1_score import F1Score
 from metrics.f1_score_macro_avg import MacroAvgF1Score
-from metrics.f1_score_micro_avg import MicroAvgF1Score
 
 class BaseMitModel(BaseModel):
     def __init__(self, hparams):
@@ -53,10 +51,8 @@ class BaseMitModel(BaseModel):
                 }
 
                 for class_name in class_names:
-                    eval_metric_ops["class_precision_{}".format(class_name)] = \
-                        Precision(class_name).evaluate(labels, predictions)
-                    eval_metric_ops["class_recall_{}".format(class_name)] = \
-                        Recall(class_name).evaluate(labels, predictions)
+                    eval_metric_ops["class_f1_score_{}".format(class_name)] = \
+                        F1Score(class_name).evaluate(labels, predictions)
 
                 return tf.estimator.EstimatorSpec(
                     mode=mode,

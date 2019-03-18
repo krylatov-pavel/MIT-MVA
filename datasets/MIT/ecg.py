@@ -24,8 +24,9 @@ class ECG(object):
 
             seq_len = seq_end - seq_start
             sample_num = seq_len // sample_len
-            
-            signals = [self.signals[seq_start + (i * sample_len):seq_start + ((i+1) * sample_len)] for i in range(sample_num)]
-            sample_groups[seq_label].extend(signals)
+
+            if sample_num > 0:
+                signals = [self.signals[seq_start + (i * sample_len):seq_start + ((i+1) * sample_len)] for i in range(sample_num)]
+                sample_groups[seq_label].extend(signals)
 
         return sample_groups

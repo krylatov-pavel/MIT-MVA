@@ -1,6 +1,5 @@
 import tensorflow as tf
-from metrics.precision import Precision
-from metrics.recall import Recall
+from metrics.f1_score import F1Score
 
 class MacroAvgF1Score(object):
     def __init__(self, class_names):
@@ -8,20 +7,13 @@ class MacroAvgF1Score(object):
 
     def evaluate(self, labels, predictions):
         with tf.variable_scope("macro_avg_f1_score"):
-            class_precisions = [Precision(class_name).evaluate(labels, predictions) for class_name in self.class_names]
-            class_recalls = [Recall(class_name).evaluate(labels, predictions) for class_name in self.class_names]
+            class_f1_scores = [F1Score(class_name).evaluate(labels, predictions) for class_name in self.class_names]
             
-            precision_update_ops = [class_precision[1] for class_precision in class_precisions]
-            recall_update_ops = [class_recall[1] for class_recall in class_recalls]
-
-            update_op = tf.group(precision_update_ops + recall_update_ops)
+            f1_update_ops = [f1_score[1] for f1_score in class_f1_scores]
             
-            precision_vals = [class_precision[0] for class_precision in class_precisions]
-            recall_vals = [class_recall[0] for class_recall in class_recalls]
+            update_op = tf.group(f1_update_ops)
+            
+            f1_vals = [f1_score[0] for f1_score in class_f1_scores]
+            avg_f1_score = tf.reduce_sum(f1_vals, axis=0) / len(self.class_names)
 
-            avg_precision = tf.reduce_sum(precision_vals, axis=0) / len(self.class_names)
-            avg_recall = tf.reduce_sum(recall_vals, axis=0) / len(self.class_names)
-
-            f1_score = 2 * avg_precision * avg_recall / (avg_precision + avg_recall + tf.keras.backend.epsilon())
-
-            return f1_score, update_op
+            return avg_f1_score, update_op
