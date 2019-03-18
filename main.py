@@ -1,7 +1,8 @@
 import tensorflow as tf
 import os
 import argparse
-from utils.helpers import get_config_from_json, get_class, avg_f1_score
+from utils.config import Config
+from utils.helpers import get_class, avg_f1_score
 from utils.dirs import create_dirs
 
 def run_experiment(config, model_dir):
@@ -45,12 +46,17 @@ def main():
     args = parser.parse_args()
 
     if args.config:
-        config = get_config_from_json(args.config)
+        config = Config(args.config)
 
-        model_dir = os.path.join("data/experiments", config.model.name.split(".")[-1], config.experiment)
+        model_dir = os.path.join(
+            "data/experiments",
+            config.settings.model.name.split(".")[-1],
+            config.settings.experiment
+        )
         create_dirs([model_dir])
+        config.save(model_dir)
 
-        run_experiment(config, model_dir)
+        run_experiment(config.settings, model_dir)
     else:
         print("configuration file name is required. use -h for help")
 
