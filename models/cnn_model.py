@@ -7,8 +7,8 @@ class CNNModel(BaseMitModel):
         training = mode == tf.estimator.ModeKeys.TRAIN
         pre_logits = features
 
-        normalize_inputs = self._get_hparam("normalize_inputs", default_value=False)
-        if normalize_inputs:
+        normalize = self._get_hparam("normalize_inputs", default_value=False)
+        if normalize:
             pre_logits = normalize_inputs(pre_logits, mode)
 
         conv_layers = self._get_hparam("conv_layers", default_value=0)
