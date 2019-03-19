@@ -3,14 +3,22 @@
         "name": "models.cnn_model.CNNModel",
         "hparams": {
             "learning_rate": 0.00002,
-            "conv_layers": 2,
+            "num_epochs": 13000,
+            "normalize_inputs": false,
+            "conv_layers": 3,
             "kernel_size": 3,
             "filters_num": 16,
             "use_batch_norm": true,
             "dense_layers": 1,
             "dense_units": 128,
-            "use_dropout": false
+            "use_dropout": true,
+            "dropout_rate": 0.5
         }
     },
-    "experiment": "two_conv_layers_3s"
+    "dataset": {
+        "hparams": {
+            "sample_len": 1250
+        }
+    },
+    "experiment": "3_conv_dropout_0.5_5s"
 }
