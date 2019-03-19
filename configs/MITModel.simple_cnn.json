@@ -1,7 +1,0 @@
-{
-    "model": {
-        "hparams": {
-        }
-    },
-    "experiment": "simple_cnn"
-}

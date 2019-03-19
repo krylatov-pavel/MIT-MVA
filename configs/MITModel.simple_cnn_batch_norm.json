@@ -1,6 +1,0 @@
-{
-    "model": {
-        "name": "models.simple_cnn_batch_norm.SimpleCNNwBatchNorm"
-    },
-    "experiment": "simple_cnn"
-}

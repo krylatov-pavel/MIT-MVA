@@ -1,6 +1,14 @@
 {
     "model": {
-        "name" : "models.two_layer_cnn_batch_norm.TwoLayerCNNwBatchNorm"
+        "name" : "models.two_layer_cnn_batch_norm.TwoLayerCNNwBatchNorm",
+        "hparams": {
+            "num_epochs": 12000
+        }
     },
-    "experiment" : "initial"
+    "dataset": {
+        "hparams": {
+            "sample_len": 1250            
+        }
+    },
+    "experiment" : "normalize_inputs_sample_5s"
 }

@@ -75,5 +75,8 @@ class BaseMitModel(BaseModel):
 
         return loss, train_op
 
-    def _get_hparam(self, name):
-        return name in self._hparams and self._hparams[name]
+    def _get_hparam(self, name, default_value):
+        if name in self._hparams:
+            return self._hparams[name]
+        else:
+            return default_value

@@ -1,0 +1,16 @@
+{
+    "model": {
+        "name": "models.cnn_model.CNNModel",
+        "hparams": {
+            "learning_rate": 0.00002,
+            "conv_layers": 2,
+            "kernel_size": 3,
+            "filters_num": 16,
+            "use_batch_norm": true,
+            "dense_layers": 1,
+            "dense_units": 128,
+            "use_dropout": false
+        }
+    },
+    "experiment": "two_conv_layers_3s"
+}

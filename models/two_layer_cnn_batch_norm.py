@@ -1,11 +1,14 @@
 import tensorflow as tf
 from models.base_mit_model import BaseMitModel
+from utils.tf_utils import noramlize_inputs
 
 class TwoLayerCNNwBatchNorm(BaseMitModel):
     def _network_fn(self, features, mode):
         training = mode == tf.estimator.ModeKeys.TRAIN
 
-        conv1 = tf.layers.conv1d(features,
+        features_norm = noramlize_inputs(features, mode)
+
+        conv1 = tf.layers.conv1d(features_norm,
             filters=16,
             kernel_size=3,
             strides=1,

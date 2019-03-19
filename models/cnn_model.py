@@ -1,30 +1,66 @@
 import tensorflow as tf
 from models.base_mit_model import BaseMitModel
+from utils.tf_utils import noramlize_inputs
 
 class CNNModel(BaseMitModel):
     def _network_fn(self, features, mode, scope="MITConvNet"):
-        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
-            conv1 = tf.layers.conv1d(features,
-                filters=16,
-                kernel_size=3,
+        training = mode == tf.estimator.ModeKeys.TRAIN
+        pre_logits = features
+
+        normalize_inputs = self._get_hparam("normalize_inputs", default_value=False)
+        if normalize_inputs:
+            pre_logits = normalize_inputs(pre_logits, mode)
+
+        conv_layers = self._get_hparam("conv_layers", default_value=0)
+        kernel_size = self._get_hparam("kernel_size", default_value=3)
+        filters_num = self._get_hparam("filters_num", default_value=16)
+        use_batchnorm = self._get_hparam("use_batch_norm", default_value=False)
+
+        for i in range(1, conv_layers + 1):
+            pre_logits = tf.layers.conv1d(pre_logits,
+                filters=filters_num * i,
+                kernel_size=kernel_size,
                 strides=1,
                 padding="same",
                 activation=tf.nn.relu,
-                name="conv1"
+                name="conv{}".format(i)
             )
 
-            pool1 = tf.layers.max_pooling1d(conv1,
+            pre_logits = tf.layers.max_pooling1d(pre_logits,
                 pool_size=2,
                 strides=2,
                 padding="same",
-                name="pool1"
+                name="pool{}".format(i)
             )
 
-            flatten = tf.layers.flatten(pool1, name="flatten")
+            if use_batchnorm:
+                pre_logits = tf.layers.batch_normalization(pre_logits,
+                    training=training,
+                    name="conv_batch_norm{}".format(i)
+                )
 
-            fc1 = tf.layers.dense(flatten,
-                units=self._hparams.class_num,
-                name="fc1"
+        pre_logits = tf.layers.flatten(pre_logits, name="flatten")
+         
+        dense_layers = self._get_hparam("dense_layers", 0)
+        dense_units = self._get_hparam("dense_units", 128)
+        use_dropout = self._get_hparam("use_dropout", False)
+
+        for i in range(1, dense_layers + 1):
+            pre_logits = tf.layers.dense(pre_logits,
+                units=dense_units,
+                activation=tf.nn.relu,
+                name="fc{}".format(i)
             )
-            
-            return fc1
+
+            if use_batchnorm:
+                pre_logits = tf.layers.batch_normalization(pre_logits,
+                    training=training,
+                    name="dense_batch_norm{}".format(i)
+                )
+        
+        logits = tf.layers.dense(pre_logits,
+            units=self._get_hparam("class_num", 4),
+            name="dense_logits"
+        )
+
+        return logits            
