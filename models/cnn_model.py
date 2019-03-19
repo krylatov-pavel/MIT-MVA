@@ -1,6 +1,6 @@
 import tensorflow as tf
 from models.base_mit_model import BaseMitModel
-from utils.tf_utils import noramlize_inputs
+from utils.tf_utils import normalize_inputs
 
 class CNNModel(BaseMitModel):
     def _network_fn(self, features, mode, scope="MITConvNet"):
@@ -44,6 +44,8 @@ class CNNModel(BaseMitModel):
         dense_layers = self._get_hparam("dense_layers", 0)
         dense_units = self._get_hparam("dense_units", 128)
         use_dropout = self._get_hparam("use_dropout", False)
+        dropout_rate= self._get_hparam("dropout_rate", 0.5)
+
 
         for i in range(1, dense_layers + 1):
             pre_logits = tf.layers.dense(pre_logits,
@@ -56,6 +58,13 @@ class CNNModel(BaseMitModel):
                 pre_logits = tf.layers.batch_normalization(pre_logits,
                     training=training,
                     name="dense_batch_norm{}".format(i)
+                )
+
+            if use_dropout:
+                pre_logits = tf.layers.dropout(pre_logits,
+                   rate=dropout_rate,
+                   training=training,
+                   name="dense_dropout{}".format(i)
                 )
         
         logits = tf.layers.dense(pre_logits,
