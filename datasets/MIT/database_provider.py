@@ -16,6 +16,7 @@ class DatabaseProvider(object):
         if is_empty(db_path) or bypass_cache:
             record_list = wfdb.io.get_record_list(self._db_name, records="all")
             ecg_list = [self.__fetch_ecg(record_name) for record_name in record_list]
+            ecg_list = [ecg for ecg in ecg_list if ecg != None]
 
             self.__save_ecgs(ecg_list, db_path)
             #do not return ecg_list here just to make sure script always loads them from files 
@@ -23,8 +24,12 @@ class DatabaseProvider(object):
         return self.__load_ecgs(db_path)
 
     def __fetch_ecg(self, record_name):
-        rec_data = wfdb.rdrecord(record_name, pb_dir=self._db_name, channels=[0], physical=True)
-        rec_annotation = wfdb.io.rdann(record_name, extension = "atr", pb_dir=self._db_name)
+        try:
+            rec_data = wfdb.rdrecord(record_name, pb_dir=self._db_name, channels=[0], physical=True)
+            rec_annotation = wfdb.io.rdann(record_name, extension = "atr", pb_dir=self._db_name)
+        except:
+            return None
+
         print("downloaded {} record data".format(record_name))
 
         if len(rec_annotation.aux_note) != len(rec_annotation.sample):

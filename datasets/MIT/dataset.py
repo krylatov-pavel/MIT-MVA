@@ -22,8 +22,13 @@ class Dataset(BaseDataset):
         total_len = len(self._dataset[mode]["y"])
         for i in range(len(self.params.signal_type_filter)):
             label_num = len([label for label in self._dataset[mode]["y"] if label == i])
-            print("class {} {}%".format(i, 100 * label_num / total_len))
+            print("class {} {}%".format(i, 100 * label_num / (total_len + 1e-7)))
         return
+
+    def class_examples(self, class_name, mode):
+        for example, label in zip(self._dataset[mode]["x"], self._dataset[mode]["y"]):
+            if label == class_name:
+                return example
 
     def get_input_fn(self, mode):
         def generator_fn():
@@ -136,19 +141,25 @@ class Dataset(BaseDataset):
             groups_num = len(stats)
             total_len = sum(group["count"] for group in stats)
 
-            for i in range(1, 2 ** groups_num):
-                mask = to_bitmask(i, groups_num)
-                subgroup_len = _groups_length(stats, mask)
-                curr_ratio = subgroup_len / total_len
-                curr_combination_error = abs(curr_ratio - self.params.split_ratio)
+            if total_len > 0:
+                for i in range(1, 2 ** groups_num):
+                    mask = to_bitmask(i, groups_num)
+                    subgroup_len = _groups_length(stats, mask)
+                    curr_ratio = subgroup_len / total_len
+                    curr_combination_error = abs(curr_ratio - self.params.split_ratio)
 
-                if curr_combination_error < best_combination_error:
-                    best_combination_error = curr_combination_error
-                    best_combination = mask.copy()
-            
-            split_map[sig_type] = {
-                TRAIN: [group["name"] for i, group in enumerate(stats) if best_combination[i] == 0],
-                EVAL: [group["name"] for i, group in enumerate(stats) if best_combination[i] == 1]
-            }
+                    if curr_combination_error < best_combination_error:
+                        best_combination_error = curr_combination_error
+                        best_combination = mask.copy()
+                
+                split_map[sig_type] = {
+                    TRAIN: [group["name"] for i, group in enumerate(stats) if best_combination[i] == 0],
+                    EVAL: [group["name"] for i, group in enumerate(stats) if best_combination[i] == 1]
+                }
+            else:
+                split_map[sig_type] = {
+                    TRAIN: [],
+                    EVAL: []
+                }
 
         return split_map
