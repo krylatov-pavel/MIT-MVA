@@ -9,6 +9,9 @@ def run_experiment(config, model_dir):
     model = get_class(config.model.name)(config.model.hparams)
     dataset = get_class(config.dataset.name)(config.dataset.params)
 
+    if hasattr(dataset, "dataset_stats"):
+        dataset.dataset_stats(tf.estimator.ModeKeys.TRAIN)
+
     run_config = tf.estimator.RunConfig(
         model_dir=model_dir,
         save_summary_steps=100,

@@ -2,6 +2,7 @@ import tensorflow as tf
 import math
 from models.base_model import BaseModel
 from metrics.f1_score import F1Score
+from metrics.class_accuracy import ClassAccuracy
 from metrics.f1_score_macro_avg import MacroAvgF1Score
 
 class BaseMitModel(BaseModel):
@@ -51,8 +52,8 @@ class BaseMitModel(BaseModel):
                 }
 
                 for class_name in class_names:
-                    eval_metric_ops["class_f1_score_{}".format(class_name)] = \
-                        F1Score(class_name).evaluate(labels, predictions)
+                    eval_metric_ops["class_accuracy_{}".format(class_name)] = \
+                        ClassAccuracy(class_name).evaluate(labels, predictions)
 
                 return tf.estimator.EstimatorSpec(
                     mode=mode,

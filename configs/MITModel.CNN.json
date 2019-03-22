@@ -12,13 +12,16 @@
             "dense_layers": 1,
             "dense_units": 128,
             "use_dropout": true,
-            "dropout_rate": 0.5
+            "dropout_rate": 0.5,
+            "class_num": 3  
         }
     },
     "dataset": {
-        "hparams": {
-            "sample_len": 1250
+        "params": {
+            "signal_type_filter": ["(N", "(VF", "(VT"],
+            "db_name": "vfdb",
+            "sample_len": 750
         }
     },
-    "experiment": "3_conv_dropout_0.5_5s"
+    "experiment": "3_conv_3_classes_3.0"
 }
