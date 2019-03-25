@@ -1,19 +1,26 @@
 import wfdb
 import os
 import pickle
-from collections import namedtuple
 from utils.dirs import create_dirs, is_empty, clear_dir
+from datasets.MIT_2d.data_structures import Record
 
 class DatabaseProvider(object):
     def __init__(self, db_name):
         self.db_name = db_name
         self._SIGNAL_FNAME = "signal.pkl"
         self._ANNT_FNAME = "annotation.pkl"
-        self.Record = namedtuple("Record", ["signal", "annotation"])
+        
 
     def ged_records(self, bypass_cache=False):
-        """Returns list of named tuple records
-        [(signal, annotation), ...]
+        """Get a list of database ECG records
+
+        Args:
+            bypass_cahce: if True force download record files from remote database,
+            otherwise use local saved files
+
+        Returns:
+            list of Records, where each record is a named tuple. E.g:
+            [(signal, annotation), ...]
         """
 
         db_dir = os.path.join("data", "database", self.db_name, "records")
@@ -67,7 +74,7 @@ class DatabaseProvider(object):
         with open(annt_fpath, "rb") as f:
             annotation = pickle.load(f)
 
-        return self.Record(signal, annotation)
+        return Record(signal, annotation)
 
     def __fetch_record(self, record_name):
         try:
