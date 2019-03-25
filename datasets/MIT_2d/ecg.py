@@ -1,3 +1,4 @@
+import numpy as np
 from datasets.MIT_2d.data_structures import Sample
 
 class ECG(object):
@@ -34,7 +35,7 @@ class ECG(object):
 
         samples = []
         
-        for label, start, end in zip(self.labels, self.timecodes, self.timecodes[1:] + [len(self.signal)]):
+        for label, start, end in zip(self.labels, self.timecodes, np.append(self.timecodes[1:], len(self.signal))):
             if label in labels_map:
                 label = labels_map[label]
             
@@ -56,6 +57,6 @@ class ECG(object):
             start_pos = start + i * sample_len
             end_pos = start_pos + sample_len
 
-            samples[i] = Sample(label, start_pos, end_pos)
+            samples[i] = Sample(self.name, label, start_pos, end_pos)
         
         return samples

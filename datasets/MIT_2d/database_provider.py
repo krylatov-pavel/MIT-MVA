@@ -11,11 +11,11 @@ class DatabaseProvider(object):
         self._ANNT_FNAME = "annotation.pkl"
         
 
-    def ged_records(self, bypass_cache=False):
+    def get_records(self, bypass_cache=False):
         """Get a list of database ECG records
 
         Args:
-            bypass_cahce: if True force download record files from remote database,
+            bypass_cache: if True force download record files from remote database,
             otherwise use local saved files
 
         Returns:

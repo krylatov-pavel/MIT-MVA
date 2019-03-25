@@ -9,6 +9,9 @@ def get_class(name):
     
     return module
 
+def flatten_list(list):
+    return [item for sublist in list for item in sublist]
+
 def avg_f1_score(labels, predictions):
     epsilon = 1e-10
 
