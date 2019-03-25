@@ -1,16 +1,24 @@
 import wfdb
 import os
 import pickle
+from collections import namedtuple
 from utils.dirs import create_dirs, is_empty, clear_dir
 
 class DatabaseProvider(object):
     def __init__(self, db_name):
         self.db_name = db_name
+        self._SIGNAL_FNAME = "signal.pkl"
+        self._ANNT_FNAME = "annotation.pkl"
+        self.Record = namedtuple("Record", ["signal", "annotation"])
 
     def ged_records(self, bypass_cache=False):
+        """Returns list of named tuple records
+        [(signal, annotation), ...]
+        """
+
         db_dir = os.path.join("data", "database", self.db_name, "records")
 
-        if not os.path.exists:
+        if not os.path.exists(db_dir):
             create_dirs([db_dir])
 
         if is_empty(db_dir) or bypass_cache:
@@ -30,38 +38,44 @@ class DatabaseProvider(object):
                 create_dirs([record_dir])
 
                 #serialize signal object to /{database_name}/{record_name}/signal.pkl
-                signal_fpath = os.path.join(record_dir, "signal.pkl")
+                signal_fpath = os.path.join(record_dir, self._SIGNAL_FNAME)
                 with open(signal_fpath, "wb") as f:
                     pickle.dump(data[0], f, pickle.DEFAULT_PROTOCOL)
 
                 #serialize signal annotation object to /{database_name}/{record_name}/annotation.pkl
-                ann_fpath = os.path.join(record_dir, "annotation.pkl")
+                ann_fpath = os.path.join(record_dir, self._ANNT_FNAME)
                 with open(ann_fpath, "wb") as f:
                     pickle.dump(data[1], f, pickle.DEFAULT_PROTOCOL)
 
     #
     def _load_records(self, db_dir):
         """ Loads list of records data from files in db_dir directory
-        Returns dictionary with record name as Key and record data dictionary as Value
-        {
-            "418": {
-                "signal" : wfdb's rdrecord object,
-                "annotation": wfdb's rdann object 
-            }
-        } 
         """
         
-        raise NotImplementedError()
+        record_dirs = [os.path.join(db_dir, r_dir) for r_dir in os.listdir(db_dir)]
+        record_dirs = [r_dir for r_dir in record_dirs if os.path.isdir(r_dir)]
+        records = [self.__load_record(r_dir) for r_dir in record_dirs]
+
+        return records
+    
+    def __load_record(self, record_dir):
+        signal_fpath = os.path.join(record_dir, self._SIGNAL_FNAME)
+        with open(signal_fpath, "rb") as f:
+            signal = pickle.load(f)
+
+        annt_fpath = os.path.join(record_dir, self._ANNT_FNAME)
+        with open(annt_fpath, "rb") as f:
+            annotation = pickle.load(f)
+
+        return self.Record(signal, annotation)
 
     def __fetch_record(self, record_name):
         try:
             rec_data = wfdb.rdrecord(record_name, pb_dir=self.db_name, channels=[0], physical=True)
-            rec_annotation = wfdb.io.rdann(record_name, extension = "atr", pb_dir=self._db_name)
+            rec_annotation = wfdb.io.rdann(record_name, extension = "atr", pb_dir=self.db_name)
             
             print("downloaded record {} data".format(record_name))
             return rec_data, rec_annotation
         except:
             print("error downloading record {} data".format(record_name))
-            return None
-
-        
+            return None        
