@@ -56,7 +56,8 @@ class ECG(object):
         for i in range(sample_num):
             start_pos = start + i * sample_len
             end_pos = start_pos + sample_len
+            signal = self.signal[start_pos:end_pos]
 
-            samples[i] = Sample(self.name, label, start_pos, end_pos)
+            samples[i] = Sample(self.name, label, start_pos, end_pos, signal)
         
         return samples

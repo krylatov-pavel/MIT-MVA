@@ -14,6 +14,5 @@ def test():
     }
 
     ds = Dataset(params)
-    ds.test()
 
 test()
