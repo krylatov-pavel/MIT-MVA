@@ -9,7 +9,8 @@ def test():
                 "(NSR" : "(N",
                 "(VFIB": "(VF"
             },
-        "labels_filter": ["(ASYS", "(N", "(VF", "(VT"]
+        "labels_filter": ["(ASYS", "(N", "(VF", "(VT"],
+        "split_ratio": [0.8, 0.2]
     }
 
     ds = Dataset(params)

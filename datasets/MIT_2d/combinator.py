@@ -27,7 +27,7 @@ class Combinator(object):
             subgroup = self._get_subgroup(remaining_groups, ratio)
             splits.append(subgroup)
 
-            remaining_groups = [el for el in remaining_groups if el in subgroup]
+            remaining_groups = [el for el in remaining_groups if not (el in subgroup)]
 
         splits.append(remaining_groups)
 
@@ -51,7 +51,7 @@ class Combinator(object):
         for i in range(1, 2 ** bits):
             combination = to_bitmask(i, bits)
             subgroup_size = self.__subgroup_size(elements, combination)
-            curr_error = abs(subgroup_size / total_size - range)
+            curr_error = abs(subgroup_size / total_size - ratio)
             if curr_error < best_combination_error:
                 best_combination_error = curr_error
                 best_combination = combination.copy()
