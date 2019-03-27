@@ -5,9 +5,11 @@ from datasets.base_dataset import BaseDataset
 from datasets.MIT_2d.database_provider import DatabaseProvider
 from datasets.MIT_2d.ecg import ECG
 from datasets.MIT_2d.images_provider import ImagesProvider
-from utils.helpers import flatten_list
 from datasets.MIT_2d.combinator import Combinator
+from datasets.MIT_2d.data_structures import Scale
+from utils.helpers import flatten_list
 from utils.dirs import is_empty, clear_dir, create_dirs
+from utils.pd_utils import list_max, list_min
 
 class Dataset(BaseDataset):
     def __init__(self, params):
@@ -61,7 +63,9 @@ class Dataset(BaseDataset):
             fold_list.append(fold)
         
         images = ImagesProvider()
-        images.convert_to_images([fold_list[0][0:10]], self.dataset_dir)
+
+        y_scale = Scale(samples_df.signal.agg(list_min), samples_df.signal.agg(list_max))
+        images.convert_to_images([fold_list[0][100:200]], self.dataset_dir, y_scale)
 
     def _build_split_map(self, df, split_ratio):
         """
