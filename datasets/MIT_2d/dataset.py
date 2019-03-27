@@ -49,6 +49,7 @@ class Dataset(BaseDataset):
         samples = flatten_list(samples)
 
         samples_df = pd.DataFrame(samples, columns=["record", "rythm", "start", "end", "signal"])
+
         split_map = self._build_split_map(samples_df, self.split_ratio)
 
         fold_list = []
@@ -64,8 +65,7 @@ class Dataset(BaseDataset):
         
         images = ImagesProvider()
 
-        y_scale = Scale(samples_df.signal.agg(list_min), samples_df.signal.agg(list_max))
-        images.convert_to_images([fold_list[0][100:200]], self.dataset_dir, y_scale)
+        images.convert_to_images([fold_list[1][1:10]], self.dataset_dir, Scale(-4.0, 4.0))
 
     def _build_split_map(self, df, split_ratio):
         """
@@ -84,4 +84,3 @@ class Dataset(BaseDataset):
             split_map[rythm] = [[s[0] for s in subgroup] for subgroup in samples_splitted]
         
         return split_map
-

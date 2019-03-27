@@ -27,14 +27,22 @@ class ImagesProvider(object):
 
         for i, group in enumerate(sample_groups):
             for sample in group:
-                fname = "{}_{}.png".format(sample.Index, sample.rythm)
+                #TO DO: skip signal if it's out of y_scale bounds and skip it
+
+                fname = "{}_{}_{}_{}-{}.png".format(sample.Index, sample.rythm, sample.record, sample.start, sample.end)
                 fpath = os.path.join(group_dirs[i], fname)
 
-                x = np.arange(len(sample.signal))
+                #hide axis    
+                #plt.axis('off')
 
-                plt.xticks([]), plt.yticks([])
-                plt.plot(x, sample.signal)
+                #hide frame
+                #plt.box(False)
+                
                 plt.ylim(y_scale.min, y_scale.max)
+
+                x = np.arange(len(sample.signal))
+                plt.plot(x, sample.signal)
+                
                 fig.savefig(fpath)
                 plt.clf() 
         
