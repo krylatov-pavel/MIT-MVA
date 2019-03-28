@@ -13,13 +13,21 @@ class ImagesProvider(object):
         self.MM_IN_SEC = 25
         self.CORRUPDER_DIR = "corrupted"
 
-    def convert_to_images(self, sample_groups, dataset_dir, y_range, sample_len, image_height, fs, dpi=200):
-        """Converts sample list to images, saves them to disc
+    def load_images(self, directory):
+        """Loads images from directory
+        Returns:
+            images: 4d numpy array, [n, image_width, image_height, channels]
+            labels 1d list, e.g ["(N)", "(ASYS", ... ]
+        """
+
+
+    def save_images(self, samples, directory, y_range, sample_len, image_height, fs, dpi=200):
+        """Converts sample list to images and saves them to disc
         Args:
-            sample_groups: 2d list, length k, where k is number of groups,
+            samples: 2d list of samples,
             elements are namedtuples, (Index, rythm, start, end, signal), e.g:
             [[(rythm="(N", start=10, end=760, signal=[0.222, 0.225, ...]), (...)], ...]
-            dataset_dir: directory to save/load files
+            directory: directory to save/load files
             y_range: namedtuple (min, max), denotes voltage range
             image_height: height of saved images, width is calculated
             fs: sample rate, Hz
@@ -27,13 +35,13 @@ class ImagesProvider(object):
             None
         """
 
-        if os.path.exists(dataset_dir) and not is_empty(dataset_dir):
-            clear_dir(dataset_dir)
+        if os.path.exists(directory):
+            clear_dir(directory)
+        else:
+            create_dirs([directory])
 
-        group_dirs = [os.path.join(dataset_dir, str(i)) for i in range(len(sample_groups))]
-        group_dirs_corrupted = [os.path.join(d, self.CORRUPDER_DIR) for d in group_dirs]
-        create_dirs(group_dirs)
-        create_dirs(group_dirs_corrupted)
+        corrupted_dir = os.path.join(directory, self.CORRUPDER_DIR)
+        create_dirs(corrupted_dir)
 
         figsize = self._calc_fig_size(image_height=image_height,
             dpi=dpi,
@@ -43,31 +51,30 @@ class ImagesProvider(object):
         )
         fig = plt.figure(frameon=False, figsize=figsize)
 
-        for i, group in enumerate(sample_groups):
-            for sample in group:
-                fname = "{}_{}_{}_{}-{}.png".format(sample.Index, sample.rythm, sample.record, sample.start, sample.end)
+        for sample in samples:
+            fname = "{}_{}_{}_{}-{}.png".format(sample.Index, sample.rythm, sample.record, sample.start, sample.end)
 
-                if self._is_out_of_range(sample.signal, y_range, 0.1):
-                    fpath = os.path.join(group_dirs[i], "corrupted", fname)
-                else:
-                    fpath = os.path.join(group_dirs[i], fname)
+            if self._is_out_of_range(sample.signal, y_range, 0.1):
+                fpath = os.path.join(directory, self.CORRUPDER_DIR, fname)
+            else:
+                fpath = os.path.join(directory, fname)
 
-                #hide axis    
-                plt.axis('off')
+            #hide axis    
+            plt.axis('off')
 
-                #hide frame
-                plt.box(False)
-                
-                plt.ylim(y_range.min, y_range.max)
+            #hide frame
+            plt.box(False)
+            
+            plt.ylim(y_range.min, y_range.max)
 
-                x = np.arange(len(sample.signal))
-                plt.plot(x, sample.signal, linewidth=0.25)
-                
-                fig.savefig(fpath, dpi=dpi)
-                plt.clf() 
+            x = np.arange(len(sample.signal))
+            plt.plot(x, sample.signal, linewidth=0.25)
+            
+            fig.savefig(fpath, dpi=dpi)
+            plt.clf() 
 
-                im_gray = cv2.imread(fpath, cv2.IMREAD_GRAYSCALE)
-                cv2.imwrite(fpath, im_gray)
+            im_gray = cv2.imread(fpath, cv2.IMREAD_GRAYSCALE)
+            cv2.imwrite(fpath, im_gray)
         
         plt.close(fig)
 

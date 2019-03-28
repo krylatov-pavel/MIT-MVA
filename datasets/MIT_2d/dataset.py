@@ -72,14 +72,15 @@ class Dataset(BaseDataset):
             
             images = ImagesProvider()
 
-            images.convert_to_images(
-                sample_groups=[fold_list[1]],
-                dataset_dir=self.dataset_dir,
-                y_range=Scale(SIG_MEAN - SIG_STD * 2, SIG_MEAN + SIG_STD * 2),
-                sample_len=self.sample_len,
-                image_height=self.image_height,
-                fs=records[0].signal.fs
-            )
+            for i, fold in enumerate(fold_list):
+                images.save_images(
+                    samples=fold[1:100],
+                    dataset_dir=os.path.join(self.dataset_dir, str(i)),
+                    y_range=Scale(SIG_MEAN - SIG_STD * 2, SIG_MEAN + SIG_STD * 2),
+                    sample_len=self.sample_len,
+                    image_height=self.image_height,
+                    fs=records[0].signal.fs
+                )
 
     def _build_split_map(self, df, split_ratio):
         """
