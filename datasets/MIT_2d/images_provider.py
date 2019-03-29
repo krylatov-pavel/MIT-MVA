@@ -1,9 +1,24 @@
 import os
+import re
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 import cv2
 from utils.dirs import create_dirs, clear_dir, is_empty
+from utils.helpers import unzip_list
+from datasets.MIT_2d.data_structures import SampleMetadata
+
+class CropModes:
+    TL = "top_left"
+    TC = "top_center"
+    TR = "top_right"
+    CL = "center_left"
+    CC = "center"
+    CR = "center_right"
+    BL = "bottom_left"
+    BC = "bottom_center"
+    BR = "bottom_right"
 
 class ImagesProvider(object):
     def __init__(self):
@@ -12,14 +27,34 @@ class ImagesProvider(object):
         #x-axis scale: 1sec takes 25mm
         self.MM_IN_SEC = 25
         self.CORRUPDER_DIR = "corrupted"
+        self.AUGMENTED_DIR = "augmented"
 
     def load_images(self, directory):
         """Loads images from directory
         Returns:
             images: 4d numpy array, [n, image_width, image_height, channels]
-            labels 1d list, e.g ["(N)", "(ASYS", ... ]
+            metadata 1d list of SampleMetadata tuples,  e.g [("418", "(N", 10, 760), ...]
         """
+        fnames = [f for f in os.listdir(directory) if os.path.isfile(f)]
+        images = [None] * len(fnames)
+        metadata = [None] * len(fnames)
 
+        for i, fname in enumerate(fnames):
+            try:
+                img = scipy.misc.imread(fname, flatten=True)
+                md = self._get_sample_metadata(fname)
+                if md:
+                    metadata[i] = md
+                    images[i] = img
+                else:
+                    print("Skipped file {}, can't parse name".format(os.path.join(directory, fname)))
+            except:
+                print("Skipped file {}, can't read image".format(os.path.join(directory, fname)))
+        
+        filtered = [(img, md) for img, md in zip(images, metadata) if img != None and md != None]
+        images, metadata = unzip_list(filtered)
+
+        return images, metadata
 
     def save_images(self, samples, directory, y_range, sample_len, image_height, fs, dpi=200):
         """Converts sample list to images and saves them to disc
@@ -105,3 +140,21 @@ class ImagesProvider(object):
         out_of_range_percentage = len(out_of_range) / len(signal)
 
         return out_of_range_percentage > threshold
+
+    def _get_image_name(self, index, rythm, record, start, end, crop_mode=None):
+        postfix = "_{}" + crop_mode if crop_mode else ""
+        template = "{}_{}_{}_{}-{}" + postfix + ".png" 
+        return template.format(index, rythm, record, start, end)
+
+    def _get_sample_metadata(self, fname):
+        regex = "^\d+_(?P<rythm>\(\w+)_(?P<record>\d+)_(?P<start>\d+)-(?P<end>\d+)"
+        m = re.match(regex, fname)
+        if m:
+            return SampleMetadata(
+                rythm=m.group('rythm'),
+                record=m.group('record'),
+                start=m.group('start'),
+                end=m.group('end'),
+            )
+        else:
+            return None
