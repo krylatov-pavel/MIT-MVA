@@ -1,19 +1,14 @@
 import os
 import re
+import math
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scipy
 import cv2
 from utils.dirs import create_dirs, clear_dir, is_empty
-from datasets.MIT_2d.data_structures import Image
-
-class CropMode:
-    TOP = "top"
-    BOTTOM = "bottom"
-    LEFT = "left"
-    RIGHT = "right"
-    CENTER = "bottom_center"
+from datasets.MIT_2d.data_structures import Image, CropMode, Crop
 
 class ImagesProvider(object):
     def __init__(self):
@@ -21,9 +16,12 @@ class ImagesProvider(object):
         self.MM_IN_MV = 10
         #x-axis scale: 1sec takes 25mm
         self.MM_IN_SEC = 25
+
         self.CORRUPDER_DIR = "corrupted"
         self.AUGMENTED_DIR = "augmented"
         self.IMG_EXTENSION = ".png"
+
+        self.CROP_RATIO = 0.75
 
     def load_images(self, directory):
         """Loads images from directory
@@ -83,7 +81,8 @@ class ImagesProvider(object):
         fig = plt.figure(frameon=False, figsize=figsize)
 
         for sample in samples:
-            fname = self._generate_image_name(index=sample.Index,
+            fname = self._generate_img_name(
+                index=sample.Index,
                 rythm=sample.rythm,
                 record=sample.record,
                 start=sample.start,
@@ -128,29 +127,11 @@ class ImagesProvider(object):
 
         images = self.load_images(directory)
 
-        w = images.shape[1]
-        h = images.shape[2]
+        aug_map = self._build_augmentation_map(images)
 
-        w_crop = int(w * crop_ratio)
-        h_crop = int(h * crop_ratio)
-
-        left_pads = [
-            (0, CropMode.LEFT),
-            (int((w - crop_ratio) / 2), CropMode.CENTER),
-            (w - w_crop, CropMode.RIGHT)
-        ]
-        top_pads = [
-            (0, CropMode.TOP),
-            (int((h - h_crop) / 2), CropMode.CENTER),
-            (h - h_crop, CropMode.BOTTOM)
-        ]
-
-        for image in images:
-            for left_pad in left_pads:
-                for top_pad in top_pads:
-                    crop = image[left_pad:left_pad + w_crop, top_pad:top_pad + h_crop]
-                    crop = cv2.resize(crop, (w, h))
-                    cv2.imwrite(self._generate_augmented_image_name(image.name, top_pad[1], left_pad[1]), crop)
+        for i in images:
+            for transformation in aug_map[i.label]:
+                transformation(i, aug_dir)
 
     def _calc_fig_size(self, image_height, dpi, y_range, sample_len, fs):
         """Calculate size of output image in inches
@@ -180,11 +161,11 @@ class ImagesProvider(object):
 
         return out_of_range_percentage > threshold
 
-    def _generate_image_name(self, index, rythm, record, start, end):
+    def _generate_img_name(self, index, rythm, record, start, end):
         template = "{index}_{rythm}_{record}_{start}-{end}{extension}"
         return template.format(index, rythm, record, start, end, self.IMG_EXTENSION)
 
-    def _generate_augmented_image_name(self, original, crop_vertical, crop_horizontal):
+    def _generate_aug_img_name(self, original, crop_vertical, crop_horizontal):
         return "{name}_{vertical}_{horizontal}{extension}".format(
             original.rstrip(self.IMG_EXTENSION),
             crop_vertical,
@@ -199,3 +180,74 @@ class ImagesProvider(object):
             return m.group('rythm')
         else:
             return None
+
+    def _build_augmentation_map(self, images):
+        """Generates mapping of image label to augmentation methods in order to
+        equalize image class distribution. i.e apply all available methods to small class,
+        several to medium class, few or none to the larges class.
+        The same set of transformations is applied to all images with same class 
+        Args: 
+            images: list of Image tuple (data, label, name)
+        Returns:
+            dictionary with "label" key and list of augmentation methods, where method
+            is a function with "image" argument
+            , e.g:
+            {
+                "(N": [method1, method2, ...]
+            }
+        """
+        aug_map = {}
+        img_shape = (images.shape[1], images.shape[2])
+
+        vert_modes = [Crop.TOP, Crop.CENTER, Crop.BOTTOM]
+        horiz_modes = [Crop.LEFT, Crop.CENTER, Crop.RIGHT]
+        crop_modes = [[CropMode(vert, horiz) for horiz in horiz_modes] for vert in vert_modes]
+
+        labels_series = pd.Series([i.label for i in images])
+        labels_distribution = labels_series.value_counts(normalize=True).sort_values()
+
+        min_distribution = labels_distribution.iloc[0] * len(crop_modes)
+
+        for label, distribution in labels_distribution.iteritems():
+            aug_num = min_distribution / distribution
+            aug_map[label] = [self._build_crop_fn(img_shape, crop_modes[:aug_num])]
+        
+        return aug_map
+
+    def _build_crop_fn(self, img_shape, crop_modes):
+        """Builds function that accepts image as parameter and creates cropped version of this image
+        Args:
+            img_shape: tuple (width, height), shape of images
+            crop_modes: list of tuple CropMode (vertical, horizontal)
+        Returns:
+            crop function
+        """
+        w = img_shape[0]
+        h = img_shape[1]
+
+        w_crop = int(w * self.CROP_RATIO)
+        h_crop = int(h * self.CROP_RATIO)
+
+        top_pads = {
+            Crop.TOP: 0,
+            Crop.CENTER: int((h - h_crop) / 2),
+            Crop.BOTTOM: h - h_crop
+        }
+        left_pads = {
+            Crop.LEFT: 0,
+            Crop.CENTER: int((w - self.CROP_RATIO) / 2),
+            Crop.RIGHT: w - w_crop
+        }
+
+        def crop(image, directory):
+            for crop_mode in crop_modes:
+                top_pad = top_pads[crop_mode.vertical]
+                left_pad = left_pads[crop_mode.horizontal]
+                fname = self._generate_aug_img_name(image.name, crop_mode.vertical, crop_mode.horizontal)
+                fpath = os.path.join(directory, fname)
+
+                crop = image.data[left_pad:left_pad + w_crop, top_pad:top_pad + h_crop]
+                crop = cv2.resize(crop, img_shape)
+                cv2.imwrite(fpath, crop)
+
+        return crop

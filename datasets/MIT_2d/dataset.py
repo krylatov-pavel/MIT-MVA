@@ -75,7 +75,7 @@ class Dataset(BaseDataset):
             for i, fold in enumerate(fold_list):
                 images.save_images(
                     samples=fold[1:100],
-                    dataset_dir=os.path.join(self.dataset_dir, str(i)),
+                    directory=os.path.join(self.dataset_dir, str(i)),
                     y_range=Scale(SIG_MEAN - SIG_STD * 2, SIG_MEAN + SIG_STD * 2),
                     sample_len=self.sample_len,
                     image_height=self.image_height,
