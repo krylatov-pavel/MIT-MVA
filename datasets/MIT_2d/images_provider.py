@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy
+import scipy.misc
 import cv2
 from utils.dirs import create_dirs, clear_dir, is_empty
 from datasets.MIT_2d.data_structures import Image, CropMode, Crop
@@ -23,34 +24,39 @@ class ImagesProvider(object):
 
         self.CROP_RATIO = 0.75
 
-    def load_images(self, directory):
+    def load(self, directory):
         """Loads images from directory
         Returns:
             list of Image namedtuples (data, label, name),
             where data is 3d numpy array [image_width, image_height, channels]
             label denotes rythm type, eg "(N"
         """
-        fnames = [f for f in os.listdir(directory) if os.path.isfile(f)]
+        fnames = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
         images = [None] * len(fnames)
         labels = [None] * len(fnames)
 
         for i, fname in enumerate(fnames):
             try:
-                img = scipy.misc.imread(fname, flatten=True)
+                fpath = os.path.join(directory, fname)
+                img = scipy.misc.imread(fpath, flatten=True)
                 label = self._get_image_label(fname)
                 if label:
                     labels[i] = label
                     images[i] = img
                 else:
-                    print("Skipped file {}, can't parse name".format(os.path.join(directory, fname)))
-            except:
-                print("Skipped file {}, can't read image".format(os.path.join(directory, fname)))
-        
-        filtered = [Image(img, lbl, f) for img, lbl, f in zip(images, labels, fnames) if img != None and lbl != None]
+                    print("Skipped file {}, can't parse name".format(fpath))
+            except Exception as e:
+                print("Skipped file {}, can't read image".format(fpath))
+                if hasattr(e, 'message'):
+                    print(e.message)
+                else:
+                    print(e)
+
+        filtered = [Image(img, lbl, f) for img, lbl, f in zip(images, labels, fnames) if not (img is None) and bool(lbl)]
 
         return filtered
 
-    def save_images(self, samples, directory, y_range, sample_len, image_height, fs, dpi=200):
+    def save(self, samples, directory, y_range, sample_len, image_height, fs, dpi=200):
         """Converts sample list to images and saves them to disc
         Args:
             samples: 2d list of samples,
@@ -70,7 +76,7 @@ class ImagesProvider(object):
             create_dirs([directory])
 
         corrupted_dir = os.path.join(directory, self.CORRUPDER_DIR)
-        create_dirs(corrupted_dir)
+        create_dirs([corrupted_dir])
 
         figsize = self._calc_fig_size(image_height=image_height,
             dpi=dpi,
@@ -90,7 +96,7 @@ class ImagesProvider(object):
             )
 
             if self._is_out_of_range(sample.signal, y_range, 0.1):
-                fpath = os.path.join(directory, self.CORRUPDER_DIR, fname)
+                fpath = os.path.join(corrupted_dir, fname)
             else:
                 fpath = os.path.join(directory, fname)
 
@@ -113,7 +119,7 @@ class ImagesProvider(object):
         
         plt.close(fig)
 
-    def augment_images(self, directory, crop_ratio=0.75):
+    def augment(self, directory, crop_ratio=0.75):
         """Reads existing images from directory and creates augmented versions, saves them on disk
         Args:
             directory: path to existing dataset images
@@ -125,7 +131,7 @@ class ImagesProvider(object):
         else:
             create_dirs([aug_dir])
 
-        images = self.load_images(directory)
+        images = self.load(directory)
 
         aug_map = self._build_augmentation_map(images)
 
@@ -162,11 +168,11 @@ class ImagesProvider(object):
         return out_of_range_percentage > threshold
 
     def _generate_img_name(self, index, rythm, record, start, end):
-        template = "{index}_{rythm}_{record}_{start}-{end}{extension}"
+        template = "{}_{}_{}_{}-{}{}"
         return template.format(index, rythm, record, start, end, self.IMG_EXTENSION)
 
     def _generate_aug_img_name(self, original, crop_vertical, crop_horizontal):
-        return "{name}_{vertical}_{horizontal}{extension}".format(
+        return "{}_{}_{}{}".format(
             original.rstrip(self.IMG_EXTENSION),
             crop_vertical,
             crop_horizontal,
@@ -197,7 +203,8 @@ class ImagesProvider(object):
             }
         """
         aug_map = {}
-        img_shape = (images.shape[1], images.shape[2])
+        #TO DO: imread returns (width, height) imges, fix it
+        img_shape = (images[0].data.shape[1], images[0].data.shape[2])
 
         vert_modes = [Crop.TOP, Crop.CENTER, Crop.BOTTOM]
         horiz_modes = [Crop.LEFT, Crop.CENTER, Crop.RIGHT]
@@ -210,6 +217,7 @@ class ImagesProvider(object):
 
         for label, distribution in labels_distribution.iteritems():
             aug_num = min_distribution / distribution
+            #additional augmentation functions can be added here:
             aug_map[label] = [self._build_crop_fn(img_shape, crop_modes[:aug_num])]
         
         return aug_map
