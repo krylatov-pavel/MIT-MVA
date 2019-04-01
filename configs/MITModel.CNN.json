@@ -3,7 +3,7 @@
         "name": "models.cnn_model.CNNModel",
         "hparams": {
             "learning_rate": 0.00002,
-            "num_epochs": 13000,
+            "num_epochs": 20000,
             "normalize_inputs": false,
             "conv_layers": 3,
             "kernel_size": 3,
@@ -13,15 +13,20 @@
             "dense_units": 128,
             "use_dropout": true,
             "dropout_rate": 0.5,
-            "class_num": 3  
+            "class_num": 2  
         }
     },
     "dataset": {
         "params": {
-            "signal_type_filter": ["(N", "(VF", "(VT"],
+            "signal_type_filter": ["(N", "(VF"],
+            "signal_type_map": {
+                "(NSR" : "(N",
+                "(VFIB": "(VF",
+                "(VT": "(VF"
+            },
             "db_name": "vfdb",
             "sample_len": 750
         }
     },
-    "experiment": "3_conv_3_classes_3.0"
+    "experiment": "2_classes"
 }

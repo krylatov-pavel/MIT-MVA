@@ -151,7 +151,7 @@ class Dataset(BaseDataset):
                 images_dir = os.path.join(self.dataset_dir, str(i))
 
                 images.save(
-                    samples=fold[1:128],
+                    samples=fold,
                     directory=images_dir,
                     y_range=Scale(SIG_MEAN - SIG_STD * 2, SIG_MEAN + SIG_STD * 2),
                     sample_len=self.sample_len,
