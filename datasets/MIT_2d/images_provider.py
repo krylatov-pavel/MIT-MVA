@@ -9,6 +9,7 @@ import scipy
 import scipy.misc
 import cv2
 from utils.dirs import create_dirs, clear_dir, is_empty
+from utils.helpers import flatten_list
 from datasets.MIT_2d.data_structures import Image, CropMode, Crop
 
 class ImagesProvider(object):
@@ -203,12 +204,11 @@ class ImagesProvider(object):
             }
         """
         aug_map = {}
-        #TO DO: imread returns (width, height) imges, fix it
-        img_shape = (images[0].data.shape[1], images[0].data.shape[2])
+        img_shape = (images[0].data.shape[0], images[0].data.shape[1])
 
         vert_modes = [Crop.TOP, Crop.CENTER, Crop.BOTTOM]
         horiz_modes = [Crop.LEFT, Crop.CENTER, Crop.RIGHT]
-        crop_modes = [[CropMode(vert, horiz) for horiz in horiz_modes] for vert in vert_modes]
+        crop_modes = flatten_list([[CropMode(vert, horiz) for horiz in horiz_modes] for vert in vert_modes])
 
         labels_series = pd.Series([i.label for i in images])
         labels_distribution = labels_series.value_counts(normalize=True).sort_values()
@@ -216,7 +216,7 @@ class ImagesProvider(object):
         min_distribution = labels_distribution.iloc[0] * len(crop_modes)
 
         for label, distribution in labels_distribution.iteritems():
-            aug_num = min_distribution / distribution
+            aug_num = math.ceil(min_distribution / distribution)
             #additional augmentation functions can be added here:
             aug_map[label] = [self._build_crop_fn(img_shape, crop_modes[:aug_num])]
         
@@ -225,13 +225,13 @@ class ImagesProvider(object):
     def _build_crop_fn(self, img_shape, crop_modes):
         """Builds function that accepts image as parameter and creates cropped version of this image
         Args:
-            img_shape: tuple (width, height), shape of images
+            img_shape: tuple (height, width), shape of images
             crop_modes: list of tuple CropMode (vertical, horizontal)
         Returns:
             crop function
         """
-        w = img_shape[0]
-        h = img_shape[1]
+        h = img_shape[0]
+        w = img_shape[1]
 
         w_crop = int(w * self.CROP_RATIO)
         h_crop = int(h * self.CROP_RATIO)
@@ -254,8 +254,8 @@ class ImagesProvider(object):
                 fname = self._generate_aug_img_name(image.name, crop_mode.vertical, crop_mode.horizontal)
                 fpath = os.path.join(directory, fname)
 
-                crop = image.data[left_pad:left_pad + w_crop, top_pad:top_pad + h_crop]
-                crop = cv2.resize(crop, img_shape)
+                crop = image.data[top_pad:top_pad + h_crop, left_pad:left_pad + w_crop]
+                crop = cv2.resize(crop, (w, h))
                 cv2.imwrite(fpath, crop)
 
         return crop

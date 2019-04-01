@@ -11,4 +11,4 @@ class Crop:
     BOTTOM = "bottom"
     LEFT = "left"
     RIGHT = "right"
-    CENTER = "bottom_center"
+    CENTER = "center"
