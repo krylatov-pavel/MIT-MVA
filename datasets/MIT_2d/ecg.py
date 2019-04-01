@@ -16,13 +16,13 @@ class ECG(object):
         self.labels = [l.rstrip("\x00") for l in labels] 
         self.timecodes = timecodes
     
-    def get_samples(self, sample_len, labels_filter, labels_map):
+    def get_samples(self, sample_len, rythm_filter, rythm_map):
         """Cuts heart rythm sequences into a set of fixed-length samples
         Args:
             sample_len: int, sample length in frames
-            labels_filter: list of herath rythm types that needs to be included in samples,
+            rythm_filter: list of herath rythm types that needs to be included in samples,
             e.g ["(ASYS", "(VT", ...]
-            labels_map: in case some labels have the same meaning, like "(N" and "(NSR" map them to
+            rythm_map: in case some labels have the same meaning, like "(N" and "(NSR" map them to
             the same label for convinience. Dictionary, e.g:
             {
                 "(NSR)": "(N)",
@@ -36,10 +36,10 @@ class ECG(object):
         samples = []
         
         for label, start, end in zip(self.labels, self.timecodes, np.append(self.timecodes[1:], len(self.signal))):
-            if label in labels_map:
-                label = labels_map[label]
+            if label in rythm_map:
+                label = rythm_map[label]
             
-            if label in labels_filter:
+            if label in rythm_filter:
                 samples.extend(self._cut_samples(sample_len, label, start, end))
 
         return samples

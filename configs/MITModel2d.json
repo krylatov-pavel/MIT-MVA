@@ -1,0 +1,35 @@
+{
+    "model": {
+        "name": "models.cnn_model_2d.CNNModel",
+        "hparams": {
+            "learning_rate": 0.00003,
+            "num_epochs": 1300,
+            "normalize_inputs": false,
+            "class_num": 4  
+        }
+    },
+    "experiment": "initial",
+    "dataset" : {
+        "name" : "datasets.MIT_2d.dataset.Dataset",
+        "params": {
+            "db_name": "vfdb",
+            "sample_len": 640,
+            "rythm_map": {
+                    "(NSR" : "(N",
+                    "(VFIB": "(VF"
+                },
+            "rythm_filter": ["(ASYS", "(N", "(VF", "(VT"],
+            "labels_map": {
+                "(ASYS": 0,
+                "(N": 1,
+                "(VF": 2,
+                "(VT": 3
+            },
+            "split_ratio": [0.8, 0.2],
+            "image_height": 128,
+            "train_batch_size": 32,
+            "eval_batch_size": 100
+        }
+    },
+    "max_to_keep": 5
+}
