@@ -41,6 +41,7 @@ class ImagesProvider(object):
             try:
                 fpath = os.path.join(directory, fname)
                 img = scipy.misc.imread(fpath, flatten=True)
+                img = np.expand_dims(img, axis=2)
                 label = self._get_image_label(fname)
                 if label:
                     labels[i] = label

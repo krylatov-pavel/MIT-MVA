@@ -90,7 +90,7 @@ class Dataset(BaseDataset):
         Returns:
             3 list of Image tuples, list shape [k_folds, 2, n_samples]
         """
-        data = [[None, None] * len(self.split_ratio)]
+        data = [None] * len(self.split_ratio)
         
         if not self._dataset_exists():
             self._build_dataset()
@@ -101,8 +101,7 @@ class Dataset(BaseDataset):
             images_dir = os.path.join(self.dataset_dir, str(i))
             aug_images_dir = os.path.join(images_dir, images.AUGMENTED_DIR)
 
-            data[i][0] = images.load(images_dir)
-            data[i][1] = images.load(aug_images_dir)
+            data[i] = [images.load(images_dir), images.load(aug_images_dir)]
 
         return data
     
@@ -119,7 +118,7 @@ class Dataset(BaseDataset):
         """Process database, extract labeled signals, split it into samples and convert
         to 2d grayscale images, perform data augmentation, save images to disc
         """
-        
+        print("building dataset")
         records = DatabaseProvider(self.db_name).get_records()
 
         if len(records) > 0:
@@ -152,7 +151,7 @@ class Dataset(BaseDataset):
                 images_dir = os.path.join(self.dataset_dir, str(i))
 
                 images.save(
-                    samples=fold[1:30],
+                    samples=fold[1:128],
                     directory=images_dir,
                     y_range=Scale(SIG_MEAN - SIG_STD * 2, SIG_MEAN + SIG_STD * 2),
                     sample_len=self.sample_len,
@@ -161,6 +160,8 @@ class Dataset(BaseDataset):
                 )
 
                 images.augment(images_dir)
+
+        print("building dataset complete")
 
     def _build_split_map(self, df, split_ratio):
         """

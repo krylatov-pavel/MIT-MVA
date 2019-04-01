@@ -1,11 +1,11 @@
 {
     "model": {
-        "name": "models.cnn_model_2d.CNNModel",
+        "name": "models.cnn_model_2d.CNNModel2d",
         "hparams": {
             "learning_rate": 0.00003,
-            "num_epochs": 1300,
+            "num_epochs": 10000,
             "normalize_inputs": false,
-            "class_num": 4  
+            "class_num": 2  
         }
     },
     "experiment": "initial",
@@ -16,14 +16,13 @@
             "sample_len": 640,
             "rythm_map": {
                     "(NSR" : "(N",
-                    "(VFIB": "(VF"
+                    "(VFIB": "(VF",
+                    "(VT": "(VF"
                 },
-            "rythm_filter": ["(ASYS", "(N", "(VF", "(VT"],
+            "rythm_filter": ["(N", "(VF"],
             "labels_map": {
-                "(ASYS": 0,
-                "(N": 1,
-                "(VF": 2,
-                "(VT": 3
+                "(N": 0,
+                "(VF": 1
             },
             "split_ratio": [0.8, 0.2],
             "image_height": 128,

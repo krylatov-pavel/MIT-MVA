@@ -2,7 +2,7 @@ import tensorflow as tf
 from models.base_mit_model import BaseMitModel
 from utils.tf_utils import normalize_inputs
 
-class CNNModel(BaseMitModel):
+class CNNModel2d(BaseMitModel):
     def _network_fn(self, features, mode, scope="MITConvNet"):
         training = mode == tf.estimator.ModeKeys.TRAIN
         pre_logits = features
