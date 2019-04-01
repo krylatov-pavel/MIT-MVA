@@ -23,7 +23,8 @@ class ImagesProvider(object):
         self.AUGMENTED_DIR = "augmented"
         self.IMG_EXTENSION = ".png"
 
-        self.CROP_RATIO = 0.75
+        self.CORRUPDED_TRESHOLD = 0.05
+        self.CROP_RATIO = 0.8
 
     def load(self, directory):
         """Loads images from directory
@@ -86,6 +87,7 @@ class ImagesProvider(object):
             fs=fs
         )
         fig = plt.figure(frameon=False, figsize=figsize)
+        ax = plt.Axes(fig, [0., 0., 1., 1.])
 
         for sample in samples:
             fname = self._generate_img_name(
@@ -96,20 +98,18 @@ class ImagesProvider(object):
                 end=sample.end
             )
 
-            if self._is_out_of_range(sample.signal, y_range, 0.1):
+            if self._is_out_of_range(sample.signal, y_range, self.CORRUPDED_TRESHOLD):
                 fpath = os.path.join(corrupted_dir, fname)
             else:
                 fpath = os.path.join(directory, fname)
 
-            #hide axis    
-            plt.axis('off')
-            #hide frame
-            plt.box(False)
+            ax.set_axis_off()
+            fig.add_axes(ax)
             
             plt.ylim(y_range.min, y_range.max)
 
             x = np.arange(len(sample.signal))
-            plt.plot(x, sample.signal, linewidth=0.25)
+            ax.plot(x, sample.signal, linewidth=0.25)
             
             fig.savefig(fpath, dpi=dpi)
             plt.clf() 
