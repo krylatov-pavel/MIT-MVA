@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from datasets.MIT_2d.database_provider import DatabaseProvider
 from datasets.MIT_2d.ecg import ECG
-from datasets.MIT_2d.combinator import Combinator
+from datasets.MIT_2d.utils import Combinator
 from utils.dirs import is_empty
 
 class BaseExamplesProvider(object):
@@ -11,7 +11,7 @@ class BaseExamplesProvider(object):
         self.name = name
 
         self.db_name = params["db_name"]
-        self.sample_len = params["sample_len"]
+        self.slice_window = params["slice_window"]
         self.rythm_map = params["rythm_map"]
         self.rythm_filter = params["rythm_filter"]
         self.labels_map = params["labels_map"]
@@ -46,7 +46,7 @@ class BaseExamplesProvider(object):
         Args:
             splits: list of int, numbers of splits.
             In default scenario [0] for TRAIN set, [1] for EVAL
-            In k-fold validation scenario, for example, for 5-fold validation it could be [0, 1, 2, 3] for TRAIN
+            In k-split validation scenario, for example, for 5-split validation it could be [0, 1, 2, 3] for TRAIN
             and [4] for EVAL
             augmented: bool. True for TRAIN, False for EVAL
         Returns:
@@ -61,7 +61,7 @@ class BaseExamplesProvider(object):
 
     @property
     def examples_dir(self):
-        return os.path.join("data", self.db_name, self.name, str(self.sample_len))
+        return os.path.join("data", self.db_name, self.name, str(self.slice_window))
 
     @property
     def examples_exists(self):
@@ -88,7 +88,33 @@ class BaseExamplesProvider(object):
 
         return self._ecgs
 
-    def _build_split_map(self, df):
+    def _split_slices(self, slices):
+        """Split slices with according to slpit_ratio distribution.
+        Args:
+            slices: list of Slice namedtuple
+        In default case, [0.8, 0.2], 80% for TRAIN set and 20% for EVAL
+        In case k-fold validation, [0.2, 0.2, 0.2, 0.2, 0.2] each fold has 20% of examples
+        Returns:
+            list of shape [slice_num, n_slices]
+        """
+        slices_df = pd.DataFrame(slices, columns=["record", "rythm", "start", "end", "signal"])
+
+        split_map = self.__build_split_map(slices_df)
+
+        splits_list = []
+        for k in range(len(self.split_ratio)):
+            split = []
+            for rythm, group in slices_df.groupby("rythm"):
+                include_records = group.record.isin(split_map[rythm][k])
+                rythm_slices = [s for s in group[include_records].itertuples()]
+                
+                split.extend(rythm_slices)
+            
+            splits_list.append(split)
+        
+        return splits_list
+
+    def __build_split_map(self, df):
         """
         Returns: dictionary with rythm type keys, and k-length 2d list values, e.g:
         {
@@ -100,8 +126,8 @@ class BaseExamplesProvider(object):
         combinator = Combinator()
 
         for rythm, rythm_group in df.groupby("rythm"):
-            samples = [(record, len(record_group)) for record, record_group in rythm_group.groupby("record")]
-            samples_splitted = combinator.split(samples, self.split_ratio)
-            split_map[rythm] = [[s[0] for s in subgroup] for subgroup in samples_splitted]
+            slices = [(record, len(record_group)) for record, record_group in rythm_group.groupby("record")]
+            slices_splitted = combinator.split(slices, self.split_ratio)
+            split_map[rythm] = [[s[0] for s in subgroup] for subgroup in slices_splitted]
         
-        return split_map    
+        return split_map

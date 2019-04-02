@@ -1,5 +1,5 @@
 import numpy as np
-from datasets.MIT_2d.data_structures import Sample
+from datasets.MIT_2d.data_structures import Slice
 
 class ECG(object):
     def __init__(self, name, signal, labels, timecodes):
@@ -16,11 +16,11 @@ class ECG(object):
         self.labels = [l.rstrip("\x00") for l in labels] 
         self.timecodes = timecodes
     
-    def get_samples(self, sample_len, rythm_filter, rythm_map):
-        """Cuts heart rythm sequences into a set of fixed-length samples
+    def get_slices(self, slice_window, rythm_filter, rythm_map):
+        """Cuts heart rythm sequences into a set of fixed-length slices
         Args:
-            sample_len: int, sample length in frames
-            rythm_filter: list of herath rythm types that needs to be included in samples,
+            slice_window: int, slice length in frames
+            rythm_filter: list of heart rythm types that needs to be included in slices,
             e.g ["(ASYS", "(VT", ...]
             rythm_map: in case some labels have the same meaning, like "(N" and "(NSR" map them to
             the same label for convinience. Dictionary, e.g:
@@ -29,35 +29,35 @@ class ECG(object):
                 ...
             }
         Returns:
-            list of Samples, each sample is a named tuple (heart_ryth, start, end), e.g:
+            list of Slice, each slice is a named tuple ("record", "rythm", "start", "end", "signal"), e.g:
             [("(N", 32, 1001), ...]
         """
 
-        samples = []
+        slices = []
         
         for label, start, end in zip(self.labels, self.timecodes, np.append(self.timecodes[1:], len(self.signal))):
             if label in rythm_map:
                 label = rythm_map[label]
             
             if label in rythm_filter:
-                samples.extend(self._cut_samples(sample_len, label, start, end))
+                slices.extend(self._cut_slices(slice_window, label, start, end))
 
-        return samples
+        return slices
 
-    def _cut_samples(self, sample_len, label, start, end):
-        """ Cust single heart rythm sequence into fixed-length samples
+    def _cut_slices(self, slice_window, label, start, end):
+        """ Cust single heart rythm sequence into fixed-length slices
         Args:
             start: sequence start position, inclusive
             end: sequence end position, exclusive
         """
-        sample_num = (end - start) // sample_len
-        samples = [None] * sample_num
+        slice_num = (end - start) // slice_window
+        slices = [None] * slice_num
 
-        for i in range(sample_num):
-            start_pos = start + i * sample_len
-            end_pos = start_pos + sample_len
+        for i in range(slice_num):
+            start_pos = start + i * slice_window
+            end_pos = start_pos + slice_window
             signal = list(self.signal[start_pos:end_pos])
 
-            samples[i] = Sample(self.name, label, start_pos, end_pos, signal)
+            slices[i] = Slice(self.name, label, start_pos, end_pos, signal)
         
-        return samples
+        return slices

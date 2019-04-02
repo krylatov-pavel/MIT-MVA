@@ -23,7 +23,7 @@ PREDICT = tf.estimator.ModeKeys.PREDICT
 class Dataset(BaseDataset):
     def __init__(self, params):
         self.db_name = params["db_name"]
-        self.sample_len = params["sample_len"]
+        self.slice_window = params["slice_window"]
         self.rythm_map = params["rythm_map"]
         self.rythm_filter = params["rythm_filter"]
         self.labels_map = params["labels_map"]
@@ -76,7 +76,7 @@ class Dataset(BaseDataset):
 
     @property
     def dataset_dir(self):
-        return os.path.join("data", self.db_name, str(self.sample_len))
+        return os.path.join("data", self.db_name, str(self.slice_window))
 
     @property
     def data(self):
@@ -115,7 +115,7 @@ class Dataset(BaseDataset):
         return True
 
     def _build_dataset(self):
-        """Process database, extract labeled signals, split it into samples and convert
+        """Process database, extract labeled signals, split it into slices and convert
         to 2d grayscale images, perform data augmentation, save images to disc
         """
         print("building dataset")
@@ -127,21 +127,21 @@ class Dataset(BaseDataset):
                 labels=r.annotation.aux_note,
                 timecodes=r.annotation.sample) for r in records]
 
-            samples = [e.get_samples(self.sample_len, self.rythm_filter, self.rythm_map)  for e in ecgs]
-            samples = flatten_list(samples)
+            slices = [e.get_slices(self.slice_window, self.rythm_filter, self.rythm_map)  for e in ecgs]
+            slices = flatten_list(slices)
 
-            samples_df = pd.DataFrame(samples, columns=["record", "rythm", "start", "end", "signal"])
+            slices_df = pd.DataFrame(slices, columns=["record", "rythm", "start", "end", "signal"])
 
-            split_map = self._build_split_map(samples_df, self.split_ratio)
+            split_map = self._build_split_map(slices_df, self.split_ratio)
 
             fold_list = []
             for k in range(len(self.split_ratio)):
                 fold = []
-                for rythm, group in samples_df.groupby("rythm"):
+                for rythm, group in slices_df.groupby("rythm"):
                     include_records = group.record.isin(split_map[rythm][k])
-                    rythm_samples = [s for s in group[include_records].itertuples()]
+                    rythm_slices = [s for s in group[include_records].itertuples()]
                     
-                    fold.extend(rythm_samples)
+                    fold.extend(rythm_slices)
                 
                 fold_list.append(fold)
             
@@ -151,10 +151,10 @@ class Dataset(BaseDataset):
                 images_dir = os.path.join(self.dataset_dir, str(i))
 
                 images.save(
-                    samples=fold,
+                    slices=fold,
                     directory=images_dir,
                     y_range=Scale(SIG_MEAN - SIG_STD * 2, SIG_MEAN + SIG_STD * 2),
-                    sample_len=self.sample_len,
+                    slice_window=self.slice_window,
                     image_height=self.image_height,
                     fs=records[0].signal.fs
                 )
@@ -175,9 +175,9 @@ class Dataset(BaseDataset):
         combinator = Combinator()
 
         for rythm, rythm_group in df.groupby("rythm"):
-            samples = [(record, len(record_group)) for record, record_group in rythm_group.groupby("record")]
-            samples_splitted = combinator.split(samples, split_ratio)
-            split_map[rythm] = [[s[0] for s in subgroup] for subgroup in samples_splitted]
+            slices = [(record, len(record_group)) for record, record_group in rythm_group.groupby("record")]
+            slices_splitted = combinator.split(slices, split_ratio)
+            split_map[rythm] = [[s[0] for s in subgroup] for subgroup in slices_splitted]
         
         return split_map
 
