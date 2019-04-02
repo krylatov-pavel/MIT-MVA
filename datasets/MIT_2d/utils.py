@@ -16,7 +16,7 @@ class NameGenerator(object):
             self.file_extension
         )
 
-    def _get_image_label(self, fname):
+    def get_rythm(self, fname):
         regex = "^\d+_(?P<rythm>\(\w+)_(?P<record>\d+)_(?P<start>\d+)-(?P<end>\d+)"
         m = re.match(regex, fname)
         if m:

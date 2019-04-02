@@ -14,17 +14,19 @@ class WaveExamplesProvider(BaseExamplesProvider):
         slices = flatten_list(slices)
 
         splits = self._split_slices(slices)
+        wp = WavedataProvider()
 
         for i, s in enumerate(splits):
             directory = os.path.join(self.examples_dir, str(i))
-            WavedataProvider.save(s, directory)
+            wp.save(s, directory)
 
     def _load_examples(self):
         example_splits = {}
+        wp = WavedataProvider()
 
         for i in range(len(self.split_ratio)):
             directory = os.path.join(self.examples_dir, str(i))
-            examples = WavedataProvider.load(directory, include_augmented=True)
+            examples = wp.load(directory, include_augmented=True)
 
             example_splits[i] = {
                 "regular": examples[0],

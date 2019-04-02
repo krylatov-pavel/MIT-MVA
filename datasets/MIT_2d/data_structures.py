@@ -5,7 +5,7 @@ Slice = namedtuple("Slice", ["record", "rythm", "start", "end", "signal"])
 Scale = namedtuple("Scale", ["min", "max"])
 Image = namedtuple("Image", ["data", "label", "name"])
 CropMode = namedtuple("CropMode", ["vertical", "horizontal"])
-Example = namedtuple("Example", ["x", "y"])
+Example = namedtuple("Example", ["x", "y", "name"])
 
 class Crop:
     TOP = "top"
