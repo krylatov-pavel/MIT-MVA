@@ -1,5 +1,6 @@
 import csv
 import os
+import numpy as np
 from datasets.MIT_2d.data_structures import Example
 from datasets.MIT_2d.utils import NameGenerator
 from utils.dirs import is_empty, clear_dir, create_dirs
@@ -14,11 +15,11 @@ class WavedataProvider(object):
             slices: list of Slice namedpuples
             directory: directory to save slices
         """
-        if os.path.exists(directory) and not is_empty(dir):
+        if os.path.exists(directory) and not is_empty(directory):
             clear_dir(directory)
         else:
             create_dirs([directory])
-
+        
         generator = NameGenerator(".csv")
 
         for s in slices:
@@ -31,9 +32,9 @@ class WavedataProvider(object):
             )
             fpath = os.path.join(directory, fname)
 
-            with open(fpath, "wb") as f:
+            with open(fpath, "w", newline='') as f:
                 wr = csv.writer(f)
-                wr.writerow(s.signal)
+                wr.writerows(np.expand_dims(s.signal, axis=1))
 
     def load(self, directory, include_augmented=False):
         """Loads examples from disk
@@ -51,31 +52,35 @@ class WavedataProvider(object):
         return (examples, examples_aug)
 
     def _load_dir(self, directory):
-        fnames = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
-        signals = [None] * len(fnames)
-        labels = [None] * len(fnames)
+        if os.path.exists(directory):
+            fnames = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+            signals = [None] * len(fnames)
+            labels = [None] * len(fnames)
 
-        generator = NameGenerator(".csv")
+            generator = NameGenerator(".csv")
 
-        for i, fname in enumerate(fnames):
-            try:
-                fpath = os.path.join(directory, fname)
-                with open(fpath, "rb") as f:
-                    reader = csv.reader(f)
-                    signal = list(reader)
+            for i, fname in enumerate(fnames):
+                try:
+                    fpath = os.path.join(directory, fname)
+                    with open(fpath, "r", newline='') as f:
+                        reader = csv.reader(f, quoting=csv.QUOTE_NONNUMERIC)
+                        signal = list(reader)
 
-                label = generator.get_rythm(fname)
-                if label:
-                    labels[i] = label
-                    signals[i] = signal
-                else:
-                    print("Skipped file {}, can't parse name".format(fpath))
-            except Exception as e:
-                print("Skipped file {}, can't read image".format(fpath))
-                if hasattr(e, 'message'):
-                    print(e.message)
-                else:
-                    print(e)
+                    label = generator.get_rythm(fname)
+                    if label:
+                        labels[i] = label
+                        signals[i] = signal
+                    else:
+                        print("Skipped file {}, can't parse name".format(fpath))
+                except Exception as e:
+                    print("Skipped file {}, can't read image".format(fpath))
+                    if hasattr(e, 'message'):
+                        print(e.message)
+                    else:
+                        print(e)
+        else:
+            print("directory not exists: ", directory)
+            return []
 
         filtered = [Example(s, lbl, f) for s, lbl, f in zip(signals, labels, fnames) if not (s is None) and bool(lbl)]
 

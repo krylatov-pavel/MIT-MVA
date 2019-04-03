@@ -13,13 +13,13 @@
         "params": {
             "db_name": "vfdb",
             "bypass_cache": false,
-            "signal_type_filter": ["(ASYS", "(N", "(VF", "(VT"],
-            "signal_type_map": {
+            "rythm_filter": ["(ASYS", "(N", "(VF", "(VT"],
+            "rythm_map": {
                 "(NSR" : "(N",
                 "(VFIB": "(VF"
             },
-            "split_ratio": 0.2,
-            "sample_len": 750,
+            "split_ratio": [0.8, 0.2],
+            "slice_window": 750,
             "train_batch_size": 32,
             "eval_batch_size": 100
         }

@@ -15,7 +15,6 @@ class BaseExamplesProvider(object):
         self.slice_window = params["slice_window"]
         self.rythm_map = params["rythm_map"]
         self.rythm_filter = params["rythm_filter"]
-        self.labels_map = params["labels_map"]
         self.split_ratio = params["split_ratio"]
 
         self._ecgs = None

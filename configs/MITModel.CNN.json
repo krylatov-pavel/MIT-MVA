@@ -17,16 +17,21 @@
         }
     },
     "dataset": {
+        "name": "datasets.MIT_2d.wave_dataset.WaveDataset",
         "params": {
-            "signal_type_filter": ["(N", "(VF"],
-            "signal_type_map": {
+            "rythm_filter": ["(N", "(VF"],
+            "rythm_map": {
                 "(NSR" : "(N",
                 "(VFIB": "(VF",
                 "(VT": "(VF"
             },
+            "label_map": {
+                "(N": 0,
+                "(VF": 1
+            },
             "db_name": "vfdb",
-            "sample_len": 750
+            "slice_window": 750
         }
     },
-    "experiment": "2_classes"
+    "experiment": "refactored_dataset"
 }
