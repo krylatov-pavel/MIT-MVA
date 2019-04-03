@@ -2,6 +2,7 @@ import csv
 import os
 from datasets.MIT_2d.data_structures import Example
 from datasets.MIT_2d.utils import NameGenerator
+from utils.dirs import is_empty, clear_dir, create_dirs
 
 class WavedataProvider(object):
     def __init__(self):
@@ -13,6 +14,11 @@ class WavedataProvider(object):
             slices: list of Slice namedpuples
             directory: directory to save slices
         """
+        if os.path.exists(directory) and not is_empty(dir):
+            clear_dir(directory)
+        else:
+            create_dirs([directory])
+
         generator = NameGenerator(".csv")
 
         for s in slices:
@@ -38,7 +44,9 @@ class WavedataProvider(object):
             ([regular_examples], <[augmented_examples]>), elemets are Example naedpuples
         """
         examples = self._load_dir(directory)
-        examples_aug = self._load_dir(os.path.join(directory, self.AUGMENTED_DIR)) if include_augmented else None
+        examples_aug = []
+        if include_augmented:
+            examples_aug = self._load_dir(os.path.join(directory, self.AUGMENTED_DIR))
 
         return (examples, examples_aug)
 
@@ -71,4 +79,4 @@ class WavedataProvider(object):
 
         filtered = [Example(s, lbl, f) for s, lbl, f in zip(signals, labels, fnames) if not (s is None) and bool(lbl)]
 
-        return filtered   
+        return filtered

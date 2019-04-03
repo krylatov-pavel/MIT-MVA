@@ -6,6 +6,8 @@ from datasets.MIT_2d.providers.wavedata_provider import WavedataProvider
 from utils.helpers import flatten_list
 
 class WaveExamplesProvider(BaseExamplesProvider):
+    def __init__(self, params):
+        super(WaveExamplesProvider, self).__init__("wave", params)
 
     def _build_examples(self):
         ecgs = self._get_ECGs()
@@ -29,7 +31,7 @@ class WaveExamplesProvider(BaseExamplesProvider):
             examples = wp.load(directory, include_augmented=True)
 
             example_splits[i] = {
-                "regular": examples[0],
+                "original": examples[0],
                 "augmented": examples[1]
             }
         

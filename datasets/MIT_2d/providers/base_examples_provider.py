@@ -4,6 +4,7 @@ import pandas as pd
 from datasets.MIT_2d.database_provider import DatabaseProvider
 from datasets.MIT_2d.ecg import ECG
 from datasets.MIT_2d.utils import Combinator
+from utils.helpers import flatten_list
 from utils.dirs import is_empty
 
 class BaseExamplesProvider(object):
@@ -32,7 +33,7 @@ class BaseExamplesProvider(object):
         returns: dictionary of Example namedtupe 
         {
             {split_number}: {
-                "regular": [Example, ...]
+                "original": [Example, ...]
                 "augmented": [Example, ...]
             },
             ...
@@ -41,14 +42,14 @@ class BaseExamplesProvider(object):
         raise NotImplementedError()
 
     #base members
-    def get(self, splits, augmented):
+    def get(self, splits, include_augmented):
         """Gets examples set from splits numbers list
         Args:
             splits: list of int, numbers of splits.
             In default scenario [0] for TRAIN set, [1] for EVAL
             In k-split validation scenario, for example, for 5-split validation it could be [0, 1, 2, 3] for TRAIN
             and [4] for EVAL
-            augmented: bool. True for TRAIN, False for EVAL
+            include_augmented: bool. True for TRAIN, False for EVAL
         Returns:
             list of Example named tuple (x, y)
         """
@@ -56,8 +57,13 @@ class BaseExamplesProvider(object):
             if not self.examples_exists:
                 self._build_examples()
             self._examples = self._load_examples()
+
+        examples = [self._examples[i]["original"] for i in splits]
+        if include_augmented:
+            examples_aug = [self._examples[i]["augmented"] for i in splits]
+            examples += examples_aug
         
-        #TO DO: read examples and return set
+        return flatten_list(examples)
 
     @property
     def examples_dir(self):
