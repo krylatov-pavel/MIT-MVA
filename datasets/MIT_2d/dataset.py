@@ -6,7 +6,7 @@ from datasets.base_dataset import BaseDataset
 from datasets.MIT_2d.database_provider import DatabaseProvider
 from datasets.MIT_2d.ecg import ECG
 from datasets.MIT_2d.images_provider import ImagesProvider
-from datasets.MIT_2d.combinator import Combinator
+from datasets.MIT_2d.utils import Combinator
 from datasets.MIT_2d.data_structures import Scale
 from utils.helpers import flatten_list
 from utils.dirs import is_empty, clear_dir, create_dirs
@@ -26,7 +26,7 @@ class Dataset(BaseDataset):
         self.slice_window = params["slice_window"]
         self.rythm_map = params["rythm_map"]
         self.rythm_filter = params["rythm_filter"]
-        self.labels_map = params["labels_map"]
+        self.label_map = params["label_map"]
         self.split_ratio = params["split_ratio"]
         self.image_height = params["image_height"]
         self.train_batch_size = params["train_batch_size"]
@@ -53,13 +53,13 @@ class Dataset(BaseDataset):
             
             for i in range(subset_num):
                 for j in range(len(self.data[set_num][i])):
-                    yield (self.data[set_num][i][j].data, self.labels_map[self.data[set_num][i][j].label])
+                    yield (self.data[set_num][i][j].data, self.label_map[self.data[set_num][i][j].label])
 
         def input_fn():
             dataset = tf.data.Dataset.from_generator(
                 generator_fn,
                 (tf.float32, tf.int64),
-                (tf.TensorShape((128, 181, 1)), tf.TensorShape(()))
+                (tf.TensorShape((128, 212, 1)), tf.TensorShape(()))
             )
 
             if mode == TRAIN:
@@ -159,7 +159,7 @@ class Dataset(BaseDataset):
                     fs=records[0].signal.fs
                 )
 
-                images.augment(images_dir)
+                #images.augment(images_dir)
 
         print("building dataset complete")
 

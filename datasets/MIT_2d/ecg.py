@@ -58,6 +58,11 @@ class ECG(object):
             end_pos = start_pos + slice_window
             signal = list(self.signal[start_pos:end_pos])
 
-            slices[i] = Slice(self.name, label, start_pos, end_pos, signal)
+            slices[i] = Slice(
+                record=self.name,
+                rythm=label,
+                start=start_pos,
+                end=end_pos,
+                signal=signal)
         
         return slices

@@ -59,16 +59,16 @@ class ImagesProvider(object):
 
         return filtered
 
-    def save(self, samples, directory, y_range, sample_len, image_height, fs, dpi=200):
-        """Converts sample list to images and saves them to disc
+    def save(self, slices, directory, y_range, slice_window, image_height, fs, dpi=200):
+        """Converts s list to images and saves them to disc
         Args:
-            samples: 2d list of samples,
+            slices: 2d list of slices,
             elements are namedtuples, (Index, rythm, start, end, signal), e.g:
             [[(rythm="(N", start=10, end=760, signal=[0.222, 0.225, ...]), (...)], ...]
             directory: directory to save/load files
             y_range: namedtuple (min, max), denotes voltage range
             image_height: height of saved images, width is calculated
-            fs: sample rate, Hz
+            fs: s rate, Hz
         Returns:
             None
         """
@@ -84,22 +84,22 @@ class ImagesProvider(object):
         figsize = self._calc_fig_size(image_height=image_height,
             dpi=dpi,
             y_range=y_range,
-            sample_len=sample_len,
+            slice_window=slice_window,
             fs=fs
         )
         fig = plt.figure(frameon=False, figsize=figsize)
         ax = plt.Axes(fig, [0., 0., 1., 1.])
 
-        for sample in samples:
+        for s in slices:
             fname = self._generate_img_name(
-                index=sample.Index,
-                rythm=sample.rythm,
-                record=sample.record,
-                start=sample.start,
-                end=sample.end
+                index=s.Index,
+                rythm=s.rythm,
+                record=s.record,
+                start=s.start,
+                end=s.end
             )
 
-            if self._is_out_of_range(sample.signal, y_range, self.CORRUPDED_TRESHOLD):
+            if self._is_out_of_range(s.signal, y_range, self.CORRUPDED_TRESHOLD):
                 fpath = os.path.join(corrupted_dir, fname)
             else:
                 fpath = os.path.join(directory, fname)
@@ -109,8 +109,8 @@ class ImagesProvider(object):
             
             plt.ylim(y_range.min, y_range.max)
 
-            x = np.arange(len(sample.signal))
-            ax.plot(x, sample.signal, linewidth=0.25)
+            x = np.arange(len(s.signal))
+            ax.plot(x, s.signal, linewidth=0.25)
             
             fig.savefig(fpath, dpi=dpi)
             plt.clf() 
@@ -141,11 +141,11 @@ class ImagesProvider(object):
             for transformation in aug_map[i.label]:
                 transformation(i, aug_dir)
 
-    def _calc_fig_size(self, image_height, dpi, y_range, sample_len, fs):
+    def _calc_fig_size(self, image_height, dpi, y_range, slice_window, fs):
         """Calculate size of output image in inches
         Returns: tuple (width, height)
         """
-        duration = sample_len / fs
+        duration = slice_window / fs
         width_mm = duration * self.MM_IN_SEC
         height_mm = abs(y_range.max - y_range.min) * self.MM_IN_MV
 
