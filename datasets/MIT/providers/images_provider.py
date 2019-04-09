@@ -156,7 +156,7 @@ class ImagesProvider(object):
         aug_map = self._build_augmentation_map(images)
 
         for i in images:
-            for transformation in aug_map[i.label]:
+            for transformation in aug_map[i.y]:
                 transformation(i, aug_dir)
 
     def _calc_fig_size(self, image_height, dpi, y_range, slice_window, fs):
@@ -213,7 +213,7 @@ class ImagesProvider(object):
         several to medium class, few or none to the larges class.
         The same set of transformations is applied to all images with same class 
         Args: 
-            images: list of Image tuple (data, label, name)
+            images: list of Example tuple (data, label, name)
         Returns:
             dictionary with "label" key and list of augmentation methods, where method
             is a function with "image" argument
@@ -223,13 +223,13 @@ class ImagesProvider(object):
             }
         """
         aug_map = {}
-        img_shape = (images[0].data.shape[0], images[0].data.shape[1])
+        img_shape = (images[0].x.shape[0], images[0].x.shape[1])
 
         vert_modes = [Crop.TOP, Crop.CENTER, Crop.BOTTOM]
         horiz_modes = [Crop.LEFT, Crop.CENTER, Crop.RIGHT]
         crop_modes = flatten_list([[CropMode(vert, horiz) for horiz in horiz_modes] for vert in vert_modes])
 
-        labels_series = pd.Series([i.label for i in images])
+        labels_series = pd.Series([i.y for i in images])
         labels_distribution = labels_series.value_counts(normalize=True).sort_values()
 
         min_distribution = labels_distribution.iloc[0] * len(crop_modes)
@@ -273,7 +273,7 @@ class ImagesProvider(object):
                 fname = self._generate_aug_img_name(image.name, crop_mode.vertical, crop_mode.horizontal)
                 fpath = os.path.join(directory, fname)
 
-                crop = image.data[top_pad:top_pad + h_crop, left_pad:left_pad + w_crop]
+                crop = image.x[top_pad:top_pad + h_crop, left_pad:left_pad + w_crop]
                 crop = cv2.resize(crop, (w, h))
                 cv2.imwrite(fpath, crop)
 

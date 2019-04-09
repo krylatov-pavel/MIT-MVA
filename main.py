@@ -12,6 +12,7 @@ def run_experiment(config, model_dir):
 
     if hasattr(dataset, "dataset_stats"):
         dataset.dataset_stats(tf.estimator.ModeKeys.TRAIN)
+        dataset.dataset_stats(tf.estimator.ModeKeys.EVAL)
 
     run_config = tf.estimator.RunConfig(
         model_dir=model_dir,

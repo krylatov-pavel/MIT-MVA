@@ -5,13 +5,13 @@ from datasets.MIT.providers.wave_examples_provider import WaveExamplesProvider
 
 class WaveDataset(BaseMITDataset):
     def __init__(self, params):
-        super(WaveDataset, self).__init__(params)
-        
-        self.examples_provider = WaveExamplesProvider(params)
+        super(WaveDataset, self).__init__(params,
+            examples_provider=WaveExamplesProvider(params)
+        )
         
     def get_input_fn(self, mode):
         folder_nums = self._folder_numbers(mode)
-        use_augmented = self._use_augmentated(mode)
+        use_augmented = self._use_augmented(mode)
         self.examples[mode] = self.examples_provider.get(folder_nums, use_augmented)
 
         def generator_fn():
@@ -37,12 +37,3 @@ class WaveDataset(BaseMITDataset):
             return dataset
         
         return input_fn
-
-    def get_eval_examples(self):
-        EVAL = tf.estimator.ModeKeys.EVAL
-
-        folder_nums = self._folder_numbers(EVAL)
-        use_augmented = self._use_augmentated(EVAL)
-        self.examples[EVAL] = self.examples_provider.get(folder_nums, use_augmented)
-
-        return unzip_list(((ex.x, ex.y) for ex in self.examples[EVAL]))

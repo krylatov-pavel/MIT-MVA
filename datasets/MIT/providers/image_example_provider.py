@@ -34,6 +34,7 @@ class ImageExamplesProvider(BaseExamplesProvider):
                     image_height=self.image_height,
                     fs=self.sample_rate
                 )
+            images.augment(directory)
     
     def _load_examples(self):
         example_splits = {}
