@@ -1,5 +1,5 @@
 import numpy as np
-from datasets.MIT_2d.data_structures import Slice
+from datasets.MIT.utils.data_structures import Slice
 
 class ECG(object):
     def __init__(self, name, signal, labels, timecodes):

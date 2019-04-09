@@ -10,7 +10,7 @@ import scipy.misc
 import cv2
 from utils.dirs import create_dirs, clear_dir, is_empty
 from utils.helpers import flatten_list
-from datasets.MIT_2d.data_structures import Image, CropMode, Crop
+from datasets.MIT.utils.data_structures import Image, CropMode, Crop
 
 class ImagesProvider(object):
     def __init__(self):

@@ -8,7 +8,7 @@ from datasets.MIT_2d.ecg import ECG
 from datasets.MIT_2d.images_provider import ImagesProvider
 from datasets.MIT_2d.utils import Combinator
 from datasets.MIT_2d.data_structures import Scale
-from utils.helpers import flatten_list
+from utils.helpers import flatten_list, unzip_list
 from utils.dirs import is_empty, clear_dir, create_dirs
 from utils.pd_utils import list_max, list_min
 
@@ -59,7 +59,7 @@ class Dataset(BaseDataset):
             dataset = tf.data.Dataset.from_generator(
                 generator_fn,
                 (tf.float32, tf.int64),
-                (tf.TensorShape((128, 212, 1)), tf.TensorShape(()))
+                (tf.TensorShape((128, 181, 1)), tf.TensorShape(()))
             )
 
             if mode == TRAIN:
@@ -73,6 +73,9 @@ class Dataset(BaseDataset):
             return dataset
             
         return input_fn
+
+    def get_eval_data(self):
+        return unzip_list(((e.data, e.label) for e in self.data[1][0]))
 
     @property
     def dataset_dir(self):
@@ -88,7 +91,7 @@ class Dataset(BaseDataset):
     def _load_data(self):
         """Loads data from images
         Returns:
-            3 list of Image tuples, list shape [k_folds, 2, n_samples]
+            list of Image tuples, list shape [k_folds, 2, n_samples]
         """
         data = [None] * len(self.split_ratio)
         

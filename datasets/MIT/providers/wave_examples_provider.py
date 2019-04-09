@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import os
-from datasets.MIT_2d.providers.base_examples_provider import BaseExamplesProvider
-from datasets.MIT_2d.providers.wavedata_provider import WavedataProvider
+from datasets.MIT.providers.base_examples_provider import BaseExamplesProvider
+from datasets.MIT.providers.wavedata_provider import WavedataProvider
 from utils.helpers import flatten_list
 
 class WaveExamplesProvider(BaseExamplesProvider):

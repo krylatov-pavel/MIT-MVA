@@ -31,7 +31,6 @@ class BaseMitModel(BaseModel):
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
             if mode == tf.estimator.ModeKeys.TRAIN:
-                print("update ops graph length: ", len(update_ops))
                 if len(update_ops) > 0:
                     train_op = tf.group([train_op, update_ops])
 

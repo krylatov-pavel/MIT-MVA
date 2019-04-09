@@ -3,36 +3,15 @@
         "name": "models.cnn_model_2d.CNNModel2d",
         "hparams": {
             "learning_rate": 0.00002,
-            "num_epochs": 7000,
-            "normalize_inputs": false,
-            "conv_layers": 3,
-            "kernel_size": 3,
-            "filters_num": 16,
-            "use_batch_norm": true,
-            "dense_layers": 1,
-            "dense_units": 128,
-            "use_dropout": true,
-            "dropout_rate": 0.5,
-            "class_num": 2  
+            "num_epochs": 3000
         }
     },
     "dataset": {
         "name": "datasets.MIT_2d.dataset.Dataset",
         "params": {
-            "rythm_filter": ["(N", "(VF"],
-            "rythm_map": {
-                "(NSR" : "(N",
-                "(VFIB": "(VF",
-                "(VT": "(VF"
-            },
-            "label_map": {
-                "(N": 0,
-                "(VF": 1
-            },
-            "db_name": "vfdb",
-            "slice_window": 750,
+            "slice_window": 640,
             "image_height": 128
         }
     },
-    "experiment": "refactored_dataset"
+    "experiment": "original_dataset_no_aug"
 }

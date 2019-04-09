@@ -3,7 +3,7 @@
         "name": "models.cnn_model.CNNModel",
         "hparams": {
             "learning_rate": 0.00002,
-            "num_epochs": 20000,
+            "num_epochs": 5000,
             "normalize_inputs": false,
             "conv_layers": 3,
             "kernel_size": 3,
@@ -12,24 +12,12 @@
             "dense_layers": 1,
             "dense_units": 128,
             "use_dropout": true,
-            "dropout_rate": 0.5,
-            "class_num": 2  
+            "dropout_rate": 0.5
         }
     },
     "dataset": {
-        "name": "datasets.MIT_2d.wave_dataset.WaveDataset",
+        "name": "datasets.MIT.wave_dataset.WaveDataset",
         "params": {
-            "rythm_filter": ["(N", "(VF"],
-            "rythm_map": {
-                "(NSR" : "(N",
-                "(VFIB": "(VF",
-                "(VT": "(VF"
-            },
-            "label_map": {
-                "(N": 0,
-                "(VF": 1
-            },
-            "db_name": "vfdb",
             "slice_window": 750
         }
     },

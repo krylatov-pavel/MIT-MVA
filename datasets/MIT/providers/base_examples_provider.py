@@ -1,9 +1,9 @@
 import os
 import numpy as np
 import pandas as pd
-from datasets.MIT_2d.database_provider import DatabaseProvider
-from datasets.MIT_2d.ecg import ECG
-from datasets.MIT_2d.utils import Combinator
+from datasets.MIT.providers.database_provider import DatabaseProvider
+from datasets.MIT.utils.ecg import ECG
+from datasets.MIT.utils.combinator import Combinator
 from utils.helpers import flatten_list
 from utils.dirs import is_empty
 

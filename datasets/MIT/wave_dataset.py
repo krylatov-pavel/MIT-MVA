@@ -1,7 +1,7 @@
 import tensorflow as tf
 from random import shuffle
 from datasets.base_dataset import BaseDataset
-from datasets.MIT_2d.providers.wave_examples_provider import WaveExamplesProvider
+from datasets.MIT.providers.wave_examples_provider import WaveExamplesProvider
 
 TRAIN = tf.estimator.ModeKeys.TRAIN
 EVAL = tf.estimator.ModeKeys.EVAL
@@ -15,18 +15,27 @@ class WaveDataset(BaseDataset):
         self.label_map = params["label_map"]
 
         self.examples_provider = WaveExamplesProvider(params)
+        self.examples = {}
 
     def get_input_fn(self, mode):
+        folder_nums = self._folder_numbers(mode)
+        use_augmented = self._use_augmentated(mode)
+        self.examples[mode] = self.examples_provider.get(folder_nums, use_augmented)
+
+        def generator_fn():
+            for ex in self.examples[mode]:
+                yield (ex.x, self.label_map[ex.y])
+
         def input_fn():
             dataset = tf.data.Dataset.from_generator(
-                self._get_generator_fn(mode),
+                generator_fn,
                 (tf.float32, tf.int64),
                 (tf.TensorShape((self.slize_window, 1)), tf.TensorShape(()))
             )
 
             if mode == TRAIN:
                 dataset = dataset.shuffle(
-                    buffer_size=5000,
+                    buffer_size=len(self.examples[mode]),
                     reshuffle_each_iteration=True
                 ).repeat()
             
@@ -41,24 +50,17 @@ class WaveDataset(BaseDataset):
         if mode == TRAIN:
             return self.train_batch_size
         else:
-            return self.eval_batch_size    
+            return self.eval_batch_size
 
-    def _get_generator_fn(self, mode):
-        print("call _get_generator_fn")
-
+    def _folder_numbers(self, mode):
         if mode == TRAIN:
-            splits = [0]
-            #make this True after implement augmentation
-            include_aug = False
+            return [0]
         else:
-            splits = [1]
-            include_aug = False
-
-        examples = self.examples_provider.get(splits, include_aug)
-        #shuffle(examples)
-            
-        def generator_fn():
-            for ex in examples:
-                yield (ex.x, self.label_map[ex.y])
-
-        return generator_fn
+            return [1]
+        
+    def _use_augmentated(self, mode):
+        if mode == TRAIN:
+            #make this True after implement augmentation
+            return False
+        else:
+            return False   

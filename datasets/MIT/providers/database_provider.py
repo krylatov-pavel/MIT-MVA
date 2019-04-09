@@ -2,7 +2,7 @@ import wfdb
 import os
 import pickle
 from utils.dirs import create_dirs, is_empty, clear_dir
-from datasets.MIT_2d.data_structures import Record
+from datasets.MIT.utils.data_structures import Record
 
 class DatabaseProvider(object):
     def __init__(self, db_name):
@@ -54,7 +54,6 @@ class DatabaseProvider(object):
                 with open(ann_fpath, "wb") as f:
                     pickle.dump(data[1], f, pickle.DEFAULT_PROTOCOL)
 
-    #
     def _load_records(self, db_dir):
         """ Loads list of records data from files in db_dir directory
         """

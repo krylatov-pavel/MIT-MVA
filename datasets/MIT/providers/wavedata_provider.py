@@ -1,8 +1,8 @@
 import csv
 import os
 import numpy as np
-from datasets.MIT_2d.data_structures import Example
-from datasets.MIT_2d.utils import NameGenerator
+from datasets.MIT.utils.data_structures import Example
+from datasets.MIT.utils.name_generator import NameGenerator
 from utils.dirs import is_empty, clear_dir, create_dirs
 
 class WavedataProvider(object):

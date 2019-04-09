@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["--config", "MITModel.simple_cnn"]
+            "args": ["--config", "MITModel.CNN2d", "--infer", "true"]
         },
         {
             "name": "Python: Remote Attach",
