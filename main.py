@@ -34,7 +34,7 @@ def run_experiment(config, model_dir):
 
     eval_spec = tf.estimator.EvalSpec(
         input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.EVAL),
-        steps=18,
+        steps=20,
         start_delay_secs=1,  # Start evaluating after 10 sec.
         throttle_secs=1
     )
@@ -51,7 +51,7 @@ def evaluate_accuracy(config, model_dir):
     x, labels = dataset.get_eval_examples()
     y = [config.dataset.params.label_map[label] for label in labels]
 
-    input_fn = tf.estimator.inputs.numpy_input_fn(np.array(x) , shuffle=False)
+    input_fn = tf.estimator.inputs.numpy_input_fn(np.array(x, dtype="float32") , shuffle=False)
 
     estimator = tf.estimator.Estimator(
         model_fn=model.build_model_fn(), 

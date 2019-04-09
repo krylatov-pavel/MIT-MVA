@@ -1,11 +1,11 @@
 import tensorflow as tf
-from utils.helpers import flatten_list
+from utils.helpers import flatten_list, unzip_list
 from datasets.MIT.base_mit_dataset import BaseMITDataset
 from datasets.MIT.providers.wave_examples_provider import WaveExamplesProvider
 
-class ImageDataset(BaseMITDataset):
+class WaveDataset(BaseMITDataset):
     def __init__(self, params):
-        super(ImageDataset, self).__init__(params)
+        super(WaveDataset, self).__init__(params)
         
         self.examples_provider = WaveExamplesProvider(params)
         
