@@ -10,7 +10,7 @@ import scipy.misc
 import cv2
 from utils.dirs import create_dirs, clear_dir, is_empty
 from utils.helpers import flatten_list
-from datasets.MIT.utils.data_structures import Image, CropMode, Crop
+from datasets.MIT.utils.data_structures import Example, CropMode, Crop
 
 class ImagesProvider(object):
     def __init__(self):
@@ -26,13 +26,31 @@ class ImagesProvider(object):
         self.CORRUPDED_TRESHOLD = 0.05
         self.CROP_RATIO = 0.8
 
-    def load(self, directory):
+    def load(self, directory, include_augmented=False):
+        """Loads examples from disk
+        Args:
+            directory: target directory
+            include_augmented: if True, return augmented images as secod element of returned list
+        Returns:
+            ([regular_examples], <[augmented_examples]>), elemets are Example naedpuples
+        """
+        examples = self._load_dir(directory)
+        examples_aug = []
+        if include_augmented:
+            examples_aug = self._load_dir(os.path.join(directory, self.AUGMENTED_DIR))
+
+        return (examples, examples_aug)
+
+    def _load_dir(self, directory):
         """Loads images from directory
         Returns:
             list of Image namedtuples (data, label, name),
             where data is 3d numpy array [image_width, image_height, channels]
             label denotes rythm type, eg "(N"
         """
+        if not os.path.exists(directory):
+            return []
+
         fnames = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
         images = [None] * len(fnames)
         labels = [None] * len(fnames)
@@ -55,7 +73,7 @@ class ImagesProvider(object):
                 else:
                     print(e)
 
-        filtered = [Image(img, lbl, f) for img, lbl, f in zip(images, labels, fnames) if not (img is None) and bool(lbl)]
+        filtered = [Example(img, lbl, f) for img, lbl, f in zip(images, labels, fnames) if not (img is None) and bool(lbl)]
 
         return filtered
 
@@ -133,7 +151,7 @@ class ImagesProvider(object):
         else:
             create_dirs([aug_dir])
 
-        images = self.load(directory)
+        images = self._load_dir(directory)
 
         aug_map = self._build_augmentation_map(images)
 

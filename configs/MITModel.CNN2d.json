@@ -7,11 +7,11 @@
         }
     },
     "dataset": {
-        "name": "datasets.MIT_2d.dataset.Dataset",
+        "name": "datasets.MIT.image_dataset.ImageDataset",
         "params": {
             "slice_window": 640,
             "image_height": 128
         }
     },
-    "experiment": "original_dataset_no_aug"
+    "experiment": "refactored_dataset"
 }

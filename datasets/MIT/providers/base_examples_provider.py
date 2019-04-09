@@ -54,8 +54,13 @@ class BaseExamplesProvider(object):
         """
         if not self._examples:
             if not self.examples_exists:
+                print("generating examples...")
                 self._build_examples()
+                print("generating examples complete")
+
+            print("loading examples...")
             self._examples = self._load_examples()
+            print("loading examples complete")
 
         examples = [self._examples[i]["original"] for i in splits]
         if include_augmented:

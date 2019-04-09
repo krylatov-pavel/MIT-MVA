@@ -48,7 +48,7 @@ def evaluate_accuracy(config, model_dir):
     model = get_class(config.model.name)(config.model.hparams)
     dataset = get_class(config.dataset.name)(config.dataset.params)
 
-    x, labels = dataset.get_eval_data()
+    x, labels = dataset.get_eval_examples()
     y = [config.dataset.params.label_map[label] for label in labels]
 
     input_fn = tf.estimator.inputs.numpy_input_fn(np.array(x) , shuffle=False)
@@ -69,7 +69,10 @@ def evaluate_accuracy(config, model_dir):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', '-c', help="Config file name (wihout extension)", type=str)
-    parser.add_argument("--infer", "-i", type=bool)
+
+    parser.add_argument('--accuracy', dest='accuracy', action='store_true')
+    parser.set_defaults(accuracy=False)
+
     args = parser.parse_args()
 
     if args.config:
@@ -83,7 +86,7 @@ def main():
         create_dirs([model_dir])
         config.save(model_dir)
 
-        if args.infer:
+        if args.accuracy:
             evaluate_accuracy(config.settings, model_dir)
         else:
             run_experiment(config.settings, model_dir)

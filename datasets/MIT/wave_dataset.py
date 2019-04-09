@@ -1,22 +1,14 @@
 import tensorflow as tf
-from random import shuffle
-from datasets.base_dataset import BaseDataset
+from utils.helpers import flatten_list
+from datasets.MIT.base_mit_dataset import BaseMITDataset
 from datasets.MIT.providers.wave_examples_provider import WaveExamplesProvider
 
-TRAIN = tf.estimator.ModeKeys.TRAIN
-EVAL = tf.estimator.ModeKeys.EVAL
-PREDICT = tf.estimator.ModeKeys.PREDICT
-
-class WaveDataset(BaseDataset):
+class ImageDataset(BaseMITDataset):
     def __init__(self, params):
-        self.train_batch_size = params["train_batch_size"]
-        self.eval_batch_size = params["eval_batch_size"]
-        self.slize_window = params["slice_window"]
-        self.label_map = params["label_map"]
-
+        super(ImageDataset, self).__init__(params)
+        
         self.examples_provider = WaveExamplesProvider(params)
-        self.examples = {}
-
+        
     def get_input_fn(self, mode):
         folder_nums = self._folder_numbers(mode)
         use_augmented = self._use_augmentated(mode)
@@ -33,7 +25,7 @@ class WaveDataset(BaseDataset):
                 (tf.TensorShape((self.slize_window, 1)), tf.TensorShape(()))
             )
 
-            if mode == TRAIN:
+            if mode == tf.estimator.ModeKeys.TRAIN:
                 dataset = dataset.shuffle(
                     buffer_size=len(self.examples[mode]),
                     reshuffle_each_iteration=True
@@ -46,21 +38,11 @@ class WaveDataset(BaseDataset):
         
         return input_fn
 
-    def _batch_size(self, mode):
-        if mode == TRAIN:
-            return self.train_batch_size
-        else:
-            return self.eval_batch_size
+    def get_eval_examples(self):
+        EVAL = tf.estimator.ModeKeys.EVAL
 
-    def _folder_numbers(self, mode):
-        if mode == TRAIN:
-            return [0]
-        else:
-            return [1]
-        
-    def _use_augmentated(self, mode):
-        if mode == TRAIN:
-            #make this True after implement augmentation
-            return False
-        else:
-            return False   
+        folder_nums = self._folder_numbers(EVAL)
+        use_augmented = self._use_augmentated(EVAL)
+        self.examples[EVAL] = self.examples_provider.get(folder_nums, use_augmented)
+
+        return unzip_list(((ex.x, ex.y) for ex in self.examples[EVAL]))
