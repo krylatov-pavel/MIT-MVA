@@ -1,5 +1,5 @@
 import os
-from datasets.MIT.providers.base_examples_provider import BaseExamplesProvider
+from datasets.MIT.base.base_examples_provider import BaseExamplesProvider
 from datasets.MIT.providers.wavedata_provider import WavedataProvider
 from utils.helpers import flatten_list
 

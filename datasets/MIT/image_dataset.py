@@ -1,6 +1,6 @@
 import tensorflow as tf
 from utils.helpers import unzip_list
-from datasets.MIT.base_mit_dataset import BaseMITDataset
+from datasets.MIT.base.base_mit_dataset import BaseMITDataset
 from datasets.MIT.providers.image_example_provider import ImageExamplesProvider
 
 class ImageDataset(BaseMITDataset):

@@ -25,14 +25,14 @@ class BaseFileProvider(object):
 
         return (examples, examples_aug)
 
-    def save(self, slices, directory, params):
+    def save(self, slices, directory, params=None):
         """Converts slices to proper file format and saves them to disc
         Args:
             slices: 2d list of slices,
             elements are namedtuples, (Index, rythm, start, end, signal), e.g:
             [[(rythm="(N", start=10, end=760, signal=[0.222, 0.225, ...]), (...)], ...]
             directory: directory to save files
-            params: this parameter is passed to _build_save_file_fn method
+            params: dictionalry, passed to _build_save_file_fn method
         Returns:
             None
         """
