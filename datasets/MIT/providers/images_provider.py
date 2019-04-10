@@ -11,133 +11,21 @@ import cv2
 from utils.dirs import create_dirs, clear_dir, is_empty
 from utils.helpers import flatten_list
 from datasets.MIT.utils.data_structures import Example, CropMode, Crop
+from datasets.MIT.base.base_file_provider import BaseFileProvider
 
-class ImagesProvider(object):
+class ImagesProvider(BaseFileProvider):
     def __init__(self):
+        super(ImagesProvider, self).__init__(".png")
+
         #y-axis scale: 1mV takes 10mm
         self.MM_IN_MV = 10
         #x-axis scale: 1sec takes 25mm
         self.MM_IN_SEC = 25
 
         self.CORRUPDER_DIR = "corrupted"
-        self.AUGMENTED_DIR = "augmented"
-        self.IMG_EXTENSION = ".png"
-
+        
         self.CORRUPDED_TRESHOLD = 0.05
         self.CROP_RATIO = 0.8
-
-    def load(self, directory, include_augmented=False):
-        """Loads examples from disk
-        Args:
-            directory: target directory
-            include_augmented: if True, return augmented images as secod element of returned list
-        Returns:
-            ([regular_examples], <[augmented_examples]>), elemets are Example naedpuples
-        """
-        examples = self._load_dir(directory)
-        examples_aug = []
-        if include_augmented:
-            examples_aug = self._load_dir(os.path.join(directory, self.AUGMENTED_DIR))
-
-        return (examples, examples_aug)
-
-    def _load_dir(self, directory):
-        """Loads images from directory
-        Returns:
-            list of Image namedtuples (data, label, name),
-            where data is 3d numpy array [image_width, image_height, channels]
-            label denotes rythm type, eg "(N"
-        """
-        if not os.path.exists(directory):
-            return []
-
-        fnames = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
-        images = [None] * len(fnames)
-        labels = [None] * len(fnames)
-
-        for i, fname in enumerate(fnames):
-            try:
-                fpath = os.path.join(directory, fname)
-                img = scipy.misc.imread(fpath, flatten=True)
-                img = np.expand_dims(img, axis=2)
-                label = self._get_image_label(fname)
-                if label:
-                    labels[i] = label
-                    images[i] = img
-                else:
-                    print("Skipped file {}, can't parse name".format(fpath))
-            except Exception as e:
-                print("Skipped file {}, can't read image".format(fpath))
-                if hasattr(e, 'message'):
-                    print(e.message)
-                else:
-                    print(e)
-
-        filtered = [Example(img, lbl, f) for img, lbl, f in zip(images, labels, fnames) if not (img is None) and bool(lbl)]
-
-        return filtered
-
-    def save(self, slices, directory, y_range, slice_window, image_height, fs, dpi=200):
-        """Converts s list to images and saves them to disc
-        Args:
-            slices: 2d list of slices,
-            elements are namedtuples, (Index, rythm, start, end, signal), e.g:
-            [[(rythm="(N", start=10, end=760, signal=[0.222, 0.225, ...]), (...)], ...]
-            directory: directory to save/load files
-            y_range: namedtuple (min, max), denotes voltage range
-            image_height: height of saved images, width is calculated
-            fs: s rate, Hz
-        Returns:
-            None
-        """
-
-        if os.path.exists(directory):
-            clear_dir(directory)
-        else:
-            create_dirs([directory])
-
-        corrupted_dir = os.path.join(directory, self.CORRUPDER_DIR)
-        create_dirs([corrupted_dir])
-
-        figsize = self._calc_fig_size(image_height=image_height,
-            dpi=dpi,
-            y_range=y_range,
-            slice_window=slice_window,
-            fs=fs
-        )
-        fig = plt.figure(frameon=False, figsize=figsize)
-        ax = plt.Axes(fig, [0., 0., 1., 1.])
-
-        for s in slices:
-            fname = self._generate_img_name(
-                index=s.Index,
-                rythm=s.rythm,
-                record=s.record,
-                start=s.start,
-                end=s.end
-            )
-
-            if self._is_out_of_range(s.signal, y_range, self.CORRUPDED_TRESHOLD):
-                fpath = os.path.join(corrupted_dir, fname)
-            else:
-                fpath = os.path.join(directory, fname)
-
-            ax.set_axis_off()
-            fig.add_axes(ax)
-            
-            plt.ylim(y_range.min, y_range.max)
-
-            x = np.arange(len(s.signal))
-            ax.plot(x, s.signal, linewidth=0.25)
-            
-            fig.savefig(fpath, dpi=dpi)
-            plt.clf() 
-
-            #convert to grayscale
-            im_gray = cv2.imread(fpath, cv2.IMREAD_GRAYSCALE)
-            cv2.imwrite(fpath, im_gray)
-        
-        plt.close(fig)
 
     def augment(self, directory, crop_ratio=0.75):
         """Reads existing images from directory and creates augmented versions, saves them on disk
@@ -158,6 +46,56 @@ class ImagesProvider(object):
         for i in images:
             for transformation in aug_map[i.y]:
                 transformation(i, aug_dir)
+
+    def _read_file(self, fpath):
+        img = scipy.misc.imread(fpath, flatten=True)
+        return np.expand_dims(img, axis=2)
+
+    def _build_save_file_fn(self, directory, params):
+        image_height = params["image_height"]
+        dpi = params["dpi"]
+        y_range = params["y_range"]
+        slice_window = params["slice_window"]
+        fs = params["fs"]
+
+        corrupted_dir = os.path.join(directory, self.CORRUPDER_DIR)
+        create_dirs([corrupted_dir])
+
+        figsize = self._calc_fig_size(image_height=image_height,
+            dpi=dpi,
+            y_range=y_range,
+            slice_window=slice_window,
+            fs=fs
+        )
+
+        fig = plt.figure(frameon=False, figsize=figsize)
+        ax = plt.Axes(fig, [0., 0., 1., 1.])
+
+        def save_file_fn(signal, fname):
+            if self._is_out_of_range(signal, y_range, self.CORRUPDED_TRESHOLD):
+                fpath = os.path.join(corrupted_dir, fname)
+            else:
+                fpath = os.path.join(directory, fname)
+
+            ax.set_axis_off()
+            fig.add_axes(ax)
+            
+            plt.ylim(y_range.min, y_range.max)
+
+            x = np.arange(len(signal))
+            ax.plot(x, signal, linewidth=0.25)
+            
+            fig.savefig(fpath, dpi=dpi)
+            plt.clf() 
+
+            #convert to grayscale
+            im_gray = cv2.imread(fpath, cv2.IMREAD_GRAYSCALE)
+            cv2.imwrite(fpath, im_gray)
+
+        def dispose_fn():
+            plt.close(fig)
+
+        return save_file_fn, dispose_fn
 
     def _calc_fig_size(self, image_height, dpi, y_range, slice_window, fs):
         """Calculate size of output image in inches
@@ -186,26 +124,6 @@ class ImagesProvider(object):
         out_of_range_percentage = len(out_of_range) / len(signal)
 
         return out_of_range_percentage > threshold
-
-    def _generate_img_name(self, index, rythm, record, start, end):
-        template = "{}_{}_{}_{}-{}{}"
-        return template.format(index, rythm, record, start, end, self.IMG_EXTENSION)
-
-    def _generate_aug_img_name(self, original, crop_vertical, crop_horizontal):
-        return "{}_{}_{}{}".format(
-            original.rstrip(self.IMG_EXTENSION),
-            crop_vertical,
-            crop_horizontal,
-            self.IMG_EXTENSION
-        )
-
-    def _get_image_label(self, fname):
-        regex = "^\d+_(?P<rythm>\(\w+)_(?P<record>\d+)_(?P<start>\d+)-(?P<end>\d+)"
-        m = re.match(regex, fname)
-        if m:
-            return m.group('rythm')
-        else:
-            return None
 
     def _build_augmentation_map(self, images):
         """Generates mapping of image label to augmentation methods in order to
@@ -270,7 +188,10 @@ class ImagesProvider(object):
             for crop_mode in crop_modes:
                 top_pad = top_pads[crop_mode.vertical]
                 left_pad = left_pads[crop_mode.horizontal]
-                fname = self._generate_aug_img_name(image.name, crop_mode.vertical, crop_mode.horizontal)
+                fname = self.name_generator.generate_aug_name(
+                    original=image.name,
+                    aug_name="{}_{}".format(crop_mode.vertical, crop_mode.horizontal)
+                )
                 fpath = os.path.join(directory, fname)
 
                 crop = image.x[top_pad:top_pad + h_crop, left_pad:left_pad + w_crop]

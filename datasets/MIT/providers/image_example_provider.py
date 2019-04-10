@@ -13,7 +13,8 @@ class ImageExamplesProvider(BaseExamplesProvider):
         super(ImageExamplesProvider, self).__init__("img", params)
         
         self.image_height = params["image_height"]
-        self.sample_rate = 250
+        self.SAMPLE_RATE = 250
+        self.DPI = 200
 
     def _build_examples(self):
         ecgs = self._get_ECGs()
@@ -26,14 +27,20 @@ class ImageExamplesProvider(BaseExamplesProvider):
 
         for i, s in enumerate(splits):
             directory = os.path.join(self.examples_dir, str(i))
+            params = {
+                "y_range": Scale(SIG_MEAN - SIG_STD * 2, SIG_MEAN + SIG_STD * 2),
+                "slice_window": self.slice_window,
+                "image_height": self.image_height,
+                "fs": self.SAMPLE_RATE,
+                "dpi": self.DPI
+            }
+
             images.save(
                     slices=s,
                     directory=directory,
-                    y_range=Scale(SIG_MEAN - SIG_STD * 2, SIG_MEAN + SIG_STD * 2),
-                    slice_window=self.slice_window,
-                    image_height=self.image_height,
-                    fs=self.sample_rate
+                    params=params
                 )
+                
             images.augment(directory)
     
     def _load_examples(self):
