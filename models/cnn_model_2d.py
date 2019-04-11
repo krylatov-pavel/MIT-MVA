@@ -9,7 +9,7 @@ class CNNModel2d(BaseMitModel):
 
         normalize = self._get_hparam("normalize_inputs", default_value=False)
         if normalize:
-            pre_logits = pre_logits / 255
+            pre_logits = pre_logits / 255.0
 
         #L1
         pre_logits = tf.layers.conv2d(pre_logits,
