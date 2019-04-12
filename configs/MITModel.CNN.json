@@ -3,7 +3,7 @@
         "name": "models.cnn_model.CNNModel",
         "hparams": {
             "learning_rate": 0.00002,
-            "num_epochs": 5000,
+            "num_epochs": 10000,
             "normalize_inputs": false,
             "conv_layers": 3,
             "kernel_size": 3,
@@ -18,7 +18,8 @@
     "dataset": {
         "name": "datasets.MIT.wave_dataset.WaveDataset",
         "params": {
-            "slice_window": 750
+            "slice_window": 750,
+            "split_ratio": [0.25, 0.25, 0.25, 0.25]
         }
     },
     "experiment": "refactored_dataset"

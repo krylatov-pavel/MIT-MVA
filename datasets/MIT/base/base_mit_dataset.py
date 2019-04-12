@@ -14,6 +14,7 @@ class BaseMITDataset(BaseDataset):
         self.eval_batch_size = params["eval_batch_size"]
         self.slize_window = params["slice_window"]
         self.label_map = params["label_map"]
+        self.split_ratio = params["split_ratio"]
 
         self.examples = {}
         self.examples_provider = examples_provider
@@ -32,8 +33,8 @@ class BaseMITDataset(BaseDataset):
 
         return unzip_list(((ex.x, ex.y) for ex in self.examples[EVAL]))
     
-    def dataset_stats(self, mode):
-        folder_nums = self._folder_numbers(mode)
+    def dataset_stats(self, mode, fold_num=None):
+        folder_nums = self._folder_numbers(mode, fold_num)
         use_augmented = self._use_augmented(mode)
         self.examples[mode] = self.examples_provider.get(folder_nums, use_augmented)
 
@@ -41,6 +42,8 @@ class BaseMITDataset(BaseDataset):
         y_series = pd.Series(y)
         y_distribution = y_series.value_counts(normalize=True).sort_values()
 
+        if fold_num:
+            print("fold:", fold_num)    
         print(mode)
         print(y_distribution)
     
@@ -50,11 +53,14 @@ class BaseMITDataset(BaseDataset):
         else:
             return self.eval_batch_size
 
-    def _folder_numbers(self, mode):
+    def _folder_numbers(self, mode, fold_num=None):
+        folds = list(range(len(self.split_ratio)))
+        eval_fold = fold_num if fold_num != None else 1
+
         if mode == TRAIN:
-            return [0]
+            return [f for f in folds if  f != eval_fold]
         else:
-            return [1]
+            return [eval_fold]
         
     def _use_augmented(self, mode):
         if mode == TRAIN:

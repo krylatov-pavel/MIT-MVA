@@ -5,20 +5,26 @@ import argparse
 from utils.config import Config
 from utils.helpers import get_class, avg_f1_score
 from utils.dirs import create_dirs
+from hooks.log_metrics import LogMetricsHook
 
-def run_experiment(config, model_dir):
+def run_crossvalidation(config, model_dir, k):
+    for i in range(k):
+        directory = os.path.join(model_dir, "fold_{}".format(i))
+        run_experiment(config, directory, i)
+
+def run_experiment(config, model_dir, fold_num=None):
     model = get_class(config.model.name)(config.model.hparams)
     dataset = get_class(config.dataset.name)(config.dataset.params)
 
     if hasattr(dataset, "dataset_stats"):
-        dataset.dataset_stats(tf.estimator.ModeKeys.TRAIN)
-        dataset.dataset_stats(tf.estimator.ModeKeys.EVAL)
+        dataset.dataset_stats(tf.estimator.ModeKeys.TRAIN, fold_num)
+        dataset.dataset_stats(tf.estimator.ModeKeys.EVAL, fold_num)
 
     run_config = tf.estimator.RunConfig(
         model_dir=model_dir,
         save_summary_steps=100,
         log_step_count_steps=100,
-        save_checkpoints_steps=500, #evaluation occurs after checkpoint save
+        save_checkpoints_steps=250, #evaluation occurs after checkpoint save
         keep_checkpoint_max=3 
     )
 
@@ -29,15 +35,28 @@ def run_experiment(config, model_dir):
     )
 
     train_spec = tf.estimator.TrainSpec(
-        input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.TRAIN),
+        input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.TRAIN, fold_num),
         max_steps=config.model.hparams.num_epochs
     )
 
+    hooks = None
+    if fold_num != None:
+        hooks = [LogMetricsHook(
+            metrics={
+                "accuracy": "accuracy/value:0",
+                "accuracy0": "accuracy_0/truediv:0",
+                "accuracy1": "accuracy_1/truediv:0"
+            }, 
+            directory=os.path.dirname(model_dir),
+            model_name=fold_num
+        )]
+
     eval_spec = tf.estimator.EvalSpec(
-        input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.EVAL),
+        input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.EVAL, fold_num),
         steps=20,
         start_delay_secs=1,  # Start evaluating after 10 sec.
-        throttle_secs=1
+        throttle_secs=1,
+        hooks=hooks
     )
     
     tf.logging.set_verbosity(tf.logging.INFO)
@@ -90,7 +109,12 @@ def main():
         if args.accuracy:
             evaluate_accuracy(config.settings, model_dir)
         else:
-            run_experiment(config.settings, model_dir)
+            k = len(config.settings.dataset.params.split_ratio)
+
+            if k == 2:
+                run_experiment(config.settings, model_dir)
+            if k > 2:
+                run_crossvalidation(config.settings, model_dir, k)
     else:
         print("configuration file name is required. use -h for help")
 

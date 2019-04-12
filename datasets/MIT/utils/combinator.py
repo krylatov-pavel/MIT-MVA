@@ -55,9 +55,9 @@ class Combinator(object):
             if curr_error < best_combination_error:
                 best_combination_error = curr_error
                 best_combination = combination.copy()
-                if curr_error <= self.accuracy:
+                #if curr_error <= self.accuracy:
                     #consider this result as "good enough", don't waste calculation time
-                    break
+                #    break
         
         return [el for el, include in zip(elements, best_combination) if include == 1]
 

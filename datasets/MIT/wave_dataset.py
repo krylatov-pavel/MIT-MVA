@@ -9,8 +9,8 @@ class WaveDataset(BaseMITDataset):
             examples_provider=WaveExamplesProvider(params)
         )
         
-    def get_input_fn(self, mode):
-        folder_nums = self._folder_numbers(mode)
+    def get_input_fn(self, mode, fold_num=None):
+        folder_nums = self._folder_numbers(mode, fold_num)
         use_augmented = self._use_augmented(mode)
         self.examples[mode] = self.examples_provider.get(folder_nums, use_augmented)
 
