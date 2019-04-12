@@ -23,7 +23,7 @@ class MatrixFileProvider(BaseFileProvider):
         returns image data: [H, W, 1], 0 .. 255 int32
         """
         pic = Image.open(fpath)
-        pic_data = np.array(pic.getdata()).reshape(pic.size[1], pic.size[0])
+        pic_data = np.array(pic.getdata()).reshape(pic.size[1], pic.size[0]).astype(float)
 
         return np.expand_dims(pic_data, axis=2)
 

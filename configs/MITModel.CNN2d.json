@@ -3,13 +3,14 @@
         "name": "models.cnn_model_2d.CNNModel2d",
         "hparams": {
             "learning_rate": 0.00002,
-            "num_epochs": 3000
+            "num_epochs": 6000,
+            "normalize_inputs": true
         }
     },
     "dataset": {
         "name": "datasets.MIT.image_dataset.ImageDataset",
         "params": {
-            "slice_window": 640,
+            "slice_window": 750,
             "image_height": 128
         }
     },

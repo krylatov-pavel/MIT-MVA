@@ -41,7 +41,7 @@ class ImageExamplesProvider(BaseExamplesProvider):
                     params=params
                 )
                 
-            images.augment(directory)
+            #images.augment(directory)
     
     def _load_examples(self):
         example_splits = {}
