@@ -64,25 +64,40 @@ def run_experiment(config, model_dir, fold_num=None):
     
     return
 
-def evaluate_accuracy(config, model_dir):
-    model = get_class(config.model.name)(config.model.hparams)
-    dataset = get_class(config.dataset.name)(config.dataset.params)
+def evaluate_accuracy(config, model_dir, k):
+    def _evaluate_model(config, model_dir, fold_num=None):
+        model = get_class(config.model.name)(config.model.hparams)
+        dataset = get_class(config.dataset.name)(config.dataset.params)
 
-    x, labels = dataset.get_eval_examples()
-    y = [config.dataset.params.label_map[label] for label in labels]
+        x, labels = dataset.get_eval_examples(fold_num)
+        y = [config.dataset.params.label_map[label] for label in labels]
 
-    input_fn = tf.estimator.inputs.numpy_input_fn(np.array(x, dtype="float32") , shuffle=False)
+        input_fn = tf.estimator.inputs.numpy_input_fn(np.array(x, dtype="float32") , shuffle=False)
 
-    estimator = tf.estimator.Estimator(
-        model_fn=model.build_model_fn(), 
-        model_dir=model_dir
-    )
-    
-    predictions = list(estimator.predict(input_fn))
-    predictions = [p["class_ids"][0] for p in predictions]
+        estimator = tf.estimator.Estimator(
+            model_fn=model.build_model_fn(), 
+            model_dir=model_dir
+        )
 
-    tp = np.equal(predictions, y)
-    accuracy = np.count_nonzero(tp) / len(y)
+        predictions = list(estimator.predict(input_fn))
+        predictions = [p["class_ids"][0] for p in predictions]
+
+        tp = np.count_nonzero(np.equal(predictions, y))
+        total = len(y)
+
+        return tp, total
+
+    tp, total = (0, 0)
+    if k == 2:
+        tp, total = _evaluate_model(config, model_dir)
+    if k > 2:
+        for i in range(k):
+            directory = os.path.join(model_dir, "fold_{}".format(i))
+            tp_curr, total_curr = _evaluate_model(config, directory, i)
+            tp += tp_curr
+            total += total_curr
+
+    accuracy = tp / total
 
     print("Evaluated accuracy: ", accuracy)
 
@@ -106,11 +121,11 @@ def main():
         create_dirs([model_dir])
         config.save(model_dir)
 
-        if args.accuracy:
-            evaluate_accuracy(config.settings, model_dir)
-        else:
-            k = len(config.settings.dataset.params.split_ratio)
+        k = len(config.settings.dataset.params.split_ratio)
 
+        if args.accuracy:
+            evaluate_accuracy(config.settings, model_dir, k)
+        else:
             if k == 2:
                 run_experiment(config.settings, model_dir)
             if k > 2:

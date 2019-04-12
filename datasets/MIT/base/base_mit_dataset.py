@@ -19,7 +19,7 @@ class BaseMITDataset(BaseDataset):
         self.examples = {}
         self.examples_provider = examples_provider
 
-    def get_eval_examples(self):
+    def get_eval_examples(self, fold_num=None):
         """Used for manual evaluating classifier accuracy
         Returns: tuple
             x: list of eval examples data
@@ -27,7 +27,7 @@ class BaseMITDataset(BaseDataset):
         """
         EVAL = tf.estimator.ModeKeys.EVAL
 
-        folder_nums = self._folder_numbers(EVAL)
+        folder_nums = self._folder_numbers(EVAL, fold_num)
         use_augmented = self._use_augmented(EVAL)
         self.examples[EVAL] = self.examples_provider.get(folder_nums, use_augmented)
 
