@@ -5,7 +5,7 @@ import argparse
 from utils.config import Config
 from utils.helpers import get_class, avg_f1_score
 from utils.dirs import create_dirs
-from hooks.log_metrics import LogMetricsHook
+from hooks.log_metrics import LogMetricsHook, plot_metrics
 
 def run_crossvalidation(config, model_dir, k):
     for i in range(k):
@@ -130,8 +130,9 @@ def main():
                 run_experiment(config.settings, model_dir)
             if k > 2:
                 run_crossvalidation(config.settings, model_dir, k)
+                plot_metrics(model_dir)
     else:
         print("configuration file name is required. use -h for help")
 
 if __name__ == "__main__":
-     main()
+    main()

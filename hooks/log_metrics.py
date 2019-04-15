@@ -2,7 +2,11 @@ import tensorflow as tf
 import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from utils.dirs import create_dirs
+from utils.helpers import unzip_list
+
+_FNAME = "stats.csv"
 
 class LogMetricsHook(tf.train.SessionRunHook):
     def __init__(self, metrics, directory, model_name):
@@ -12,7 +16,7 @@ class LogMetricsHook(tf.train.SessionRunHook):
         self._metrics = metrics
         self._model_name = model_name
 
-        self._fpath = os.path.join(directory, "stats.csv")
+        self._fpath = os.path.join(directory, _FNAME)
 
         if not os.path.exists(directory):
             create_dirs([directory])
@@ -43,6 +47,32 @@ class LogMetricsHook(tf.train.SessionRunHook):
 
     def _get_existing_stats(self):
         if os.path.exists(self._fpath):
-            return pd.DataFrame.from_csv(self._fpath)
+            return pd.read_csv(self._fpath)
         else:
             return pd.DataFrame(columns=self._columns)
+
+def plot_metrics(model_dir):
+    fpath = os.path.join(model_dir, _FNAME)
+    df = pd.read_csv(fpath)
+    steps = df.groupby("step")
+
+    metrics = [("accuracy", "b-"), ("accuracy0", "y-"), ("accuracy1", "g-")]
+    plots = []
+
+    fig = plt.figure()
+    plt.xlabel("steps")
+    plt.ylabel("accuracy")
+    plt.ylim(0.0, 1.0)
+    
+    for metric, color in metrics:
+        m_mean = steps[metric].agg(np.mean)
+        x, y = unzip_list(m_mean.iteritems())
+
+        plot, = plt.plot(x, y, color, label=metric)
+        plots.append(plot)
+
+    plt.legend(plots, [name for name, _ in metrics])
+    plt.legend(loc="upper left")
+
+    fig.savefig(os.path.join(model_dir, "plot.png"))
+    plt.close(fig)   
