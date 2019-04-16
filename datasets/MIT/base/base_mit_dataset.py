@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+import os
+from datasets.MIT.utils.name_generator import NameGenerator
 from datasets.base_dataset import BaseDataset
 from utils.helpers import unzip_list
 
@@ -46,6 +48,44 @@ class BaseMITDataset(BaseDataset):
             print("fold:", fold_num)    
         print(mode)
         print(y_distribution)
+
+    def validate(self):
+        def _load_metadata(directory, aug_dir_name):
+            fnames = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+            aug_dir = os.path.join(directory, aug_dir_name)
+            fnames += [f for f in os.listdir(aug_dir) if os.path.isfile(os.path.join(aug_dir, f))]
+
+            names = NameGenerator(None)
+            meta = [names.get_metadata(f) for f in fnames]
+
+            return meta
+
+        k = len(self.split_ratio)
+
+        invalid_records = []
+
+        sets = [None] * k
+        for i in range(k):
+            id_template = "{}_{}"
+            fold_dir = os.path.join(self.examples_provider.examples_dir, str(i))
+            examples = _load_metadata(fold_dir, "augmented")
+            sets[i] = set((id_template.format(e.rythm, e.record) for e in examples))
+
+        for i in range(k):
+            for j in range(i + 1, k):
+                intersection = list(sets[i].intersection(sets[j]))
+                if len(intersection) > 0:
+                    records = [(i, j, r) for r in intersection]
+                    invalid_records.append(records)
+
+        if len(invalid_records) > 0:
+            print("invalid records:")
+            print(invalid_records)
+
+            raise AssertionError("Invalid dataset")
+        
+        else:
+            print("dataset OK")
     
     def _batch_size(self, mode):
         if mode == TRAIN:

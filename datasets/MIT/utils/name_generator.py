@@ -1,4 +1,5 @@
 import re
+from datasets.MIT.utils.data_structures import SliceMeta
 
 class NameGenerator(object):
     def __init__(self, file_extension):
@@ -15,10 +16,15 @@ class NameGenerator(object):
             self.file_extension
         )
 
-    def get_rythm(self, fname):
+    def get_metadata(self, fname):
         regex = "^\d+_(?P<rythm>\(\w+)_(?P<record>\d+)_(?P<start>\d+)-(?P<end>\d+)"
         m = re.match(regex, fname)
         if m:
-            return m.group('rythm')
+            return SliceMeta(
+                record=m.group("record"),
+                rythm=m.group("rythm"),
+                start=m.group('start'),
+                end=m.group('end')
+            )
         else:
             return None

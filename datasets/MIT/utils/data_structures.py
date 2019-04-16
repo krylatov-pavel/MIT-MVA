@@ -1,7 +1,11 @@
 from collections import namedtuple
 
 Record = namedtuple("Record", ["signal", "annotation"])
-Slice = namedtuple("Slice", ["record", "rythm", "start", "end", "signal"])
+
+_slice_meta = ["record", "rythm", "start", "end"]
+SliceMeta = namedtuple("SliceMeta", _slice_meta)
+Slice = namedtuple("Slice", _slice_meta + ["signal"])
+
 Scale = namedtuple("Scale", ["min", "max"])
 CropMode = namedtuple("CropMode", ["vertical", "horizontal"])
 Example = namedtuple("Example", ["x", "y", "name"])

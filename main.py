@@ -59,7 +59,7 @@ def run_experiment(config, model_dir, fold_num=None):
         hooks=hooks
     )
     
-    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.logging.set_verbosity(tf.logging.ERROR)
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
     
     return
@@ -103,10 +103,13 @@ def evaluate_accuracy(config, model_dir, k):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', '-c', help="Config file name (wihout extension)", type=str)
+    parser.add_argument("--config", "-c", help="Config file name (wihout extension)", type=str)
 
-    parser.add_argument('--accuracy', dest='accuracy', action='store_true')
+    parser.add_argument("--accuracy", dest="accuracy", action="store_true")
     parser.set_defaults(accuracy=False)
+
+    parser.add_argument("--validate", dest="validate", action="store_true")
+    parser.set_defaults(validate=False)
 
     args = parser.parse_args()
 
@@ -122,6 +125,10 @@ def main():
         config.save(model_dir)
 
         k = len(config.settings.dataset.params.split_ratio)
+
+        if args.validate:
+            dataset = get_class(config.settings.dataset.name)(config.settings.dataset.params)
+            dataset.validate()
 
         if args.accuracy:
             evaluate_accuracy(config.settings, model_dir, k)

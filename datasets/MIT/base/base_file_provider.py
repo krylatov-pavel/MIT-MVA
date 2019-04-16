@@ -74,9 +74,9 @@ class BaseFileProvider(object):
             try:
                 fpath = os.path.join(directory, fname)
                 x = self._read_file(fpath)
-                label = self.name_generator.get_rythm(fname)
-                if label:
-                    labels[i] = label
+                metadata = self.name_generator.get_metadata(fname)
+                if metadata:
+                    labels[i] = metadata.rythm
                     data[i] = x
                 else:
                     print("Skipped file {}, can't parse name".format(fpath))
