@@ -22,5 +22,5 @@
             "split_ratio": [0.25, 0.25, 0.25, 0.25]
         }
     },
-    "experiment": "refactored_dataset"
+    "experiment": "augmented"
 }

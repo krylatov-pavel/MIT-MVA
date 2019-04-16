@@ -54,7 +54,7 @@ def run_experiment(config, model_dir, fold_num=None):
     eval_spec = tf.estimator.EvalSpec(
         input_fn=dataset.get_input_fn(tf.estimator.ModeKeys.EVAL, fold_num),
         steps=20,
-        start_delay_secs=1,  # Start evaluating after 10 sec.
+        start_delay_secs=1,  # Start evaluating after 1 sec.
         throttle_secs=1,
         hooks=hooks
     )

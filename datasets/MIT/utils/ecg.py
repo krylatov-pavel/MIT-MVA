@@ -16,7 +16,7 @@ class ECG(object):
         self.labels = [l.rstrip("\x00") for l in labels] 
         self.timecodes = timecodes
     
-    def get_slices(self, slice_window, rythm_filter, rythm_map):
+    def get_slices(self, slice_window, rythm_filter, rythm_map, reverse=False):
         """Cuts heart rythm sequences into a set of fixed-length slices
         Args:
             slice_window: int, slice length in frames
@@ -40,22 +40,28 @@ class ECG(object):
                 label = rythm_map[label]
             
             if label in rythm_filter:
-                slices.extend(self._cut_slices(slice_window, label, start, end))
+                slices.extend(self._cut_slices(slice_window, label, start, end, reverse))
 
         return slices
 
-    def _cut_slices(self, slice_window, label, start, end):
+    def _cut_slices(self, slice_window, label, start, end, reverse=False):
         """ Cust single heart rythm sequence into fixed-length slices
         Args:
             start: sequence start position, inclusive
             end: sequence end position, exclusive
+            reverse: if True, start slicing from the end of a sequence
         """
         slice_num = (end - start) // slice_window
         slices = [None] * slice_num
 
         for i in range(slice_num):
-            start_pos = start + i * slice_window
-            end_pos = start_pos + slice_window
+            if reverse:
+                start_pos = start + i * slice_window
+                end_pos = start_pos + slice_window
+            else:
+                end_pos = end - i * slice_window
+                start_pos = end_pos - slice_window
+            
             signal = list(self.signal[start_pos:end_pos])
 
             slices[i] = Slice(

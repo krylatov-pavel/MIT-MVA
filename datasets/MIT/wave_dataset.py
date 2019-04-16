@@ -37,3 +37,9 @@ class WaveDataset(BaseMITDataset):
             return dataset
         
         return input_fn
+
+    def _use_augmented(self, mode):
+        if mode == tf.estimator.ModeKeys.TRAIN:
+            return True
+        else:
+            return False   
