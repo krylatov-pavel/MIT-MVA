@@ -1,0 +1,25 @@
+{
+    "hparams": {
+        "learning_rate": {
+            "range": [0.00001, 0.1],
+            "logscale": true
+        },
+        "conv_layers": {
+            "options": [2, 3, 4, 5]
+        },
+        "filters_num": {
+            "options": [16, 32]
+        },
+        "dense_layers": {
+            "options": [1, 2, 3]
+        },
+        "dense_units": {
+            "options": [64, 128, 256]
+        }
+    },
+    "params": {
+        "slice_window": {
+            "options": [500, 600, 750, 1000]
+        }
+    }
+}
