@@ -18,9 +18,10 @@
     "dataset": {
         "name": "datasets.MIT.wave_dataset.WaveDataset",
         "params": {
+            "include_augmented": true,
             "slice_window": 750,
             "split_ratio": [0.25, 0.25, 0.25, 0.25]
         }
     },
-    "experiment": "augmented"
+    "experiment": "hparams_search"
 }

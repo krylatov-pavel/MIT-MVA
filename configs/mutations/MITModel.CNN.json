@@ -20,6 +20,9 @@
     "params": {
         "slice_window": {
             "options": [500, 600, 750, 1000]
+        },
+        "include_augmented": {
+            "options": [true, false]
         }
     }
 }

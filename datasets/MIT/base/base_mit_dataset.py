@@ -17,6 +17,7 @@ class BaseMITDataset(BaseDataset):
         self.slize_window = params["slice_window"]
         self.label_map = params["label_map"]
         self.split_ratio = params["split_ratio"]
+        self.include_augmented = params["include_augmented"]
 
         self.examples = {}
         self.examples_provider = examples_provider
@@ -104,7 +105,6 @@ class BaseMITDataset(BaseDataset):
         
     def _use_augmented(self, mode):
         if mode == TRAIN:
-            #make this True after implement augmentation
-            return False
+            return self.include_augmented
         else:
             return False   
