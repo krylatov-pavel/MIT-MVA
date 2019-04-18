@@ -32,7 +32,7 @@ class MutableConfig(Config):
         name = rule["hparam"]
         value = self._generate_value(rule)
 
-        if name in self.settings:
+        if name in obj:
             obj[name] = value
         else:
             raise ValueError("theres' no '{}' parameter in configuration object. make sure that name is correct".format(name))

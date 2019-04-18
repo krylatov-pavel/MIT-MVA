@@ -72,7 +72,7 @@ def plot_metrics(model_dir):
             idx_max = np.argmax(y)
             step = x[idx_max]
             max_accuracy = y[idx_max]
-            plt.text(0.05, 0.05, "max accuracy {0:.3f} on step {}".format(max_accuracy, step))
+            plt.text(0.05, 0.05, "max accuracy {:.3f} on step {}".format(max_accuracy, step))
 
         plot, = plt.plot(x, y, color, label=metric)
         plots.append(plot)

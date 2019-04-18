@@ -11,7 +11,7 @@ class Config(object):
         iteration = self.settings.iteration if "iteration" in self.settings else "default"
 
         return os.path.join(
-            "data/experiments",
+            "data\\experiments",
             self.settings.model.name.split(".")[-1],
             self.settings.experiment,
             iteration

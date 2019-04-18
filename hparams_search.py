@@ -6,7 +6,10 @@ from utils.dirs import create_dirs, clear_dir
 from hooks.log_metrics import max_accuracy
 
 def iteration_name_generator(num, directory):
-    existing_names = [d for d in os.listdir(directory) if os.path.isdir(d)]
+    if os.path.exists(directory):
+        existing_names = [d for d in os.listdir(directory) if os.path.isdir(d)]
+    else:
+        existing_names = []
 
     i = 0
     while num > 0:
@@ -27,6 +30,8 @@ def random_search():
         best_result = [0, 0]
 
         for iteration in iteration_name_generator(args.iterations, os.path.dirname(config.model_dir)):
+            print("search iteration ", iteration)
+
             settings = config.mutate(iteration)
             experiment = Experiment(settings, config.model_dir)
 
@@ -40,7 +45,7 @@ def random_search():
                 best_result[0] = accuracy
                 best_result[1] = iteration
         
-        print("Best accuracy: {0:.3f} on iteration {}".format(*best_result))
+        print("Best accuracy: {:.3f} on iteration {}".format(*best_result))
     else:
         print("configuration file name is required. use -h for help")
 
