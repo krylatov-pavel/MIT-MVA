@@ -1,7 +1,6 @@
 import copy
 import random
 import math
-import uuid
 from utils.config import Config
 
 class MutableConfig(Config):
@@ -16,7 +15,7 @@ class MutableConfig(Config):
         self._data_mutation_rules = \
             [self._create_mutatation_rule(key, value) for key, value in mutations_config.params.items()]
 
-    def mutate(self):
+    def mutate(self, iteration):
         self.settings = copy.deepcopy(self._original_settings)
 
         for rule in self._model_mutation_rules:
@@ -25,7 +24,7 @@ class MutableConfig(Config):
         for rule in self._data_mutation_rules:
             self._apply_rule(self.settings.dataset.params, rule)
 
-        self.settings.experiment += "_" + str(uuid.uuid4())
+        self.settings.iteration = iteration
 
         return self.settings
 

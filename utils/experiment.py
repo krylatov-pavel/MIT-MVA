@@ -5,17 +5,10 @@ from utils.helpers import get_class, avg_f1_score
 from hooks.log_metrics import LogMetricsHook, plot_metrics
 
 class Experiment():
-    def __init__(self, config):
+    def __init__(self, config, model_dir):
         self.config = config
+        self.model_dir = model_dir
         self.k = len(self.config.dataset.params.split_ratio)
-
-    @property
-    def model_dir(self):
-        return os.path.join(
-            "data/experiments",
-            self.config.model.name.split(".")[-1],
-            self.config.experiment
-        )
 
     def run(self):
         #regular experiment

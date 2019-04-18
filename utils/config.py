@@ -4,14 +4,25 @@ import os
 
 class Config(object):
     def __init__(self, name):
-        self.settings = self.__get_config_from_json(name)
+        self.settings = self._get_config_from_json("configs", name)
+
+    @property
+    def model_dir(self):
+        iteration = self.settings.iteration if "iteration" in self.settings else "default"
+
+        return os.path.join(
+            "data/experiments",
+            self.settings.model.name.split(".")[-1],
+            self.settings.experiment,
+            iteration
+        )
 
     def save(self, model_dir):
         fpath = os.path.join(model_dir, "config.json")
         with open(fpath,'w') as file:
             json.dump(self.settings, file, sort_keys=False, indent=4)
 
-    def __get_config_from_json(self, name):
+    def _get_config_from_json(self, directory, name):
         def merge(a, b):
             for key in b.keys():
                 if key in a:
@@ -38,7 +49,7 @@ class Config(object):
         
         for i in range(1, len(parts) + 1):
             fname = ".".join(parts[:i]) + ".json"
-            fpath = os.path.join("configs",  fname)
+            fpath = os.path.join(directory, fname)
 
             if os.path.lexists(fpath):
                 # parse the configurations from the config json file provided

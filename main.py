@@ -18,7 +18,7 @@ def main():
     if args.config:
         config = Config(args.config)
 
-        experiment = Experiment(config.settings)
+        experiment = Experiment(config.settings, config.model_dir)
 
         if args.validate:
             experiment.validate_dataset()
@@ -26,8 +26,8 @@ def main():
         if args.accuracy:
             experiment.evaluate_accuracy()
         else:
-            create_dirs([experiment.model_dir])
-            config.save(experiment.model_dir)
+            create_dirs([config.model_dir])
+            config.save(config.model_dir)
 
             experiment.run()
     else:

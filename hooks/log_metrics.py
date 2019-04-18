@@ -68,6 +68,12 @@ def plot_metrics(model_dir):
         m_mean = steps[metric].agg(np.mean)
         x, y = unzip_list(m_mean.iteritems())
 
+        if metric == "accuracy":
+            idx_max = np.argmax(y)
+            step = x[idx_max]
+            max_accuracy = y[idx_max]
+            plt.text(0.05, 0.05, "max accuracy {0:.3f} on step {}".format(max_accuracy, step))
+
         plot, = plt.plot(x, y, color, label=metric)
         plots.append(plot)
 
@@ -75,4 +81,15 @@ def plot_metrics(model_dir):
     plt.legend(loc="upper left")
 
     fig.savefig(os.path.join(model_dir, "plot.png"))
-    plt.close(fig)   
+    plt.close(fig)
+
+def max_accuracy(model_dir):
+    fpath = os.path.join(model_dir, _FNAME)
+    df = pd.read_csv(fpath)
+    steps = df.groupby("step")
+
+    mean = steps["accuracy"].agg(np.mean)
+
+    max_accuracy = np.max(mean)
+    
+    return max_accuracy
