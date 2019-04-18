@@ -7,7 +7,7 @@ from hooks.log_metrics import max_accuracy
 
 def iteration_name_generator(num, directory):
     if os.path.exists(directory):
-        existing_names = [d for d in os.listdir(directory) if os.path.isdir(d)]
+        existing_names = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
     else:
         existing_names = []
 
