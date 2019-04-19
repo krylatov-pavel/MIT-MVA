@@ -5,7 +5,7 @@ from utils.experiment import Experiment
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", "-c", help="Config file name (wihout extension)", type=str)
+    parser.add_argument("--config", "-c", help="Config name (wihout extension) or full path", type=str)
 
     parser.add_argument("--accuracy", dest="accuracy", action="store_true")
     parser.set_defaults(accuracy=False)

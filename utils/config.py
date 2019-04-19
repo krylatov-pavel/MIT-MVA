@@ -4,7 +4,13 @@ import os
 
 class Config(object):
     def __init__(self, name):
-        self.settings = self._get_config_from_json("configs", name)
+        if os.path.exists(name) and os.path.isfile(name):
+            directory = os.path.dirname(name)
+            fname, _ = os.path.splitext(os.path.basename(name))
+        else:
+            directory = "configs"
+            fname = name
+        self.settings = self._get_config_from_json(directory, fname)
 
     @property
     def model_dir(self):
