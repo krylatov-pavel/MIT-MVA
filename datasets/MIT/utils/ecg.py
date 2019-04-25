@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import scipy.interpolate
 from datasets.MIT.utils.data_structures import Slice
 
 class ECG(object):
@@ -16,7 +18,7 @@ class ECG(object):
         self.labels = [l.rstrip("\x00") for l in labels] 
         self.timecodes = timecodes
     
-    def get_slices(self, slice_window, rythm_filter, rythm_map, reverse=False):
+    def get_slices(self, slice_window, rythm_filter, rythm_map, reverse=False, resample=False):
         """Cuts heart rythm sequences into a set of fixed-length slices
         Args:
             slice_window: int, slice length in frames
@@ -40,7 +42,10 @@ class ECG(object):
                 label = rythm_map[label]
             
             if label in rythm_filter:
-                slices.extend(self._cut_slices(slice_window, label, start, end, reverse))
+                if not resample:
+                    slices.extend(self._cut_slices(slice_window, label, start, end, reverse))
+                else:
+                    slices.extend(self._cut_resampled_slices(slice_window, label, start, end))
 
         return slices
 
@@ -71,4 +76,37 @@ class ECG(object):
                 end=end_pos,
                 signal=signal)
         
+        return slices
+
+    def _cut_resampled_slices(self, slice_window, label, start, end):
+        """Randomly cut signal slices and downsample/interpolate it
+        to the fixed slice_window length
+        """
+
+        resample_options = [0.7, 0.8, 0.9, 1.1, 1.2, 1.3]
+        slices = []
+
+        start_pos = start
+        end_pos = start
+
+        while True:
+            signal_len = int(random.choice(resample_options) * slice_window)
+
+            start_pos = end_pos
+            end_pos = start_pos + signal_len
+            if end_pos > end:
+                break
+            
+            signal = list(self.signal[start_pos:end_pos])
+            resample_fn = scipy.interpolate.interp1d(np.arange(signal_len), signal)
+            signal = resample_fn(np.linspace(0, signal_len - 1, slice_window))
+
+            slices.append(Slice(
+                record=self.name,
+                rythm=label,
+                start=start_pos,
+                end=end_pos,
+                signal=signal
+            ))
+
         return slices

@@ -23,7 +23,7 @@ class WaveExamplesProvider(BaseExamplesProvider):
             directory = os.path.join(self.examples_dir, str(i))
             wp.save(s, directory)
 
-        aug_slices = [e.get_slices(self.slice_window, self.rythm_filter, self.rythm_map, reverse=True)  for e in ecgs]
+        aug_slices = [e.get_slices(self.slice_window, self.rythm_filter, self.rythm_map, resample=True)  for e in ecgs]
         aug_slices = flatten_list(aug_slices)
 
         aug_splits = self._split_aug_slices(aug_slices, splits)
@@ -63,8 +63,8 @@ class WaveExamplesProvider(BaseExamplesProvider):
         for i, s in enumerate(original_splits):
             slices_df = pd.DataFrame(s, columns=["index"] + df_columns)
 
-            aug_splits[i] = []
             aug_split_slices = []
+            aug_splits[i] = aug_split_slices
 
             for rythm, group in slices_df.groupby("rythm"):
                 records = group["record"].unique()
@@ -75,6 +75,7 @@ class WaveExamplesProvider(BaseExamplesProvider):
 
 
             #equalize distribution of classes
+            """
             orig_distribution = slices_df["rythm"].value_counts().sort_values().iteritems()
             orig_distribution = list(orig_distribution)
 
@@ -96,5 +97,6 @@ class WaveExamplesProvider(BaseExamplesProvider):
                     take = min_class_slices_num - class_count
 
                     aug_splits[i].extend(class_slices[:take])
-                        
+            """
+
         return aug_splits
