@@ -79,7 +79,7 @@ class Experiment():
             save_summary_steps=100,
             log_step_count_steps=100,
             save_checkpoints_steps=250, #evaluation occurs after checkpoint save
-            keep_checkpoint_max=3 
+            keep_checkpoint_max=10 
         )
 
         classifier = tf.estimator.Estimator(

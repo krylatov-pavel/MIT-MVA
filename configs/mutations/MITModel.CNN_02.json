@@ -22,10 +22,7 @@
     },
     "params": {
         "slice_window": {
-            "options": [500, 750, 1000, 1250]
-        },
-        "include_augmented": {
-            "options": [true, false]
+            "options": [501, 751, 1001, 1251]
         }
     }
 }

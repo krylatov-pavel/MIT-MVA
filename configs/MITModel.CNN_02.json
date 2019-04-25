@@ -1,0 +1,27 @@
+{
+    "model": {
+        "name": "models.cnn_model_02.CNNModel02",
+        "hparams": {
+            "learning_rate": 0.00002,
+            "num_epochs": 10000,
+            "normalize_inputs": false,
+            "conv_layers": 3,
+            "kernel_size": 3,
+            "filters_num": 16,
+            "use_batch_norm": true,
+            "dense_layers": 1,
+            "dense_units": 128,
+            "use_dropout": true,
+            "dropout_rate": 0.5
+        }
+    },
+    "dataset": {
+        "name": "datasets.MIT.wave_dataset.WaveDataset",
+        "params": {
+            "include_augmented": true,
+            "slice_window": 750,
+            "split_ratio": [0.25, 0.25, 0.25, 0.25]
+        }
+    },
+    "experiment": "swap_bn_activation"
+}

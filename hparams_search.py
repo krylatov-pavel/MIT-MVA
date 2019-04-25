@@ -52,6 +52,8 @@ def random_search():
     parser.add_argument("--iterations", "-i", help="Number of search iterations", type=int)
     parser.add_argument("--stats", dest="stats", action="store_true")
     parser.set_defaults(stats=False)
+    parser.add_argument("--validate", dest="validate", action="store_true")
+    parser.set_defaults(validate=False)
 
     args = parser.parse_args()
 
@@ -73,6 +75,9 @@ def random_search():
                 config.save(config.model_dir)
 
                 experiment.run()
+
+                if args.validate:
+                    experiment.validate_dataset()
 
                 accuracy = max_accuracy(config.model_dir)
                 if accuracy > best_result[0]:
