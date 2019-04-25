@@ -1,0 +1,52 @@
+{
+    "model": {
+        "name": "models.cnn_model.CNNModel",
+        "hparams": {
+            "learning_rate": 0.0005999468047163931,
+            "num_epochs": 10000,
+            "class_num": 2,
+            "normalize_inputs": false,
+            "conv_layers": 6,
+            "kernel_size": 3,
+            "filters_num": 32,
+            "use_batch_norm": true,
+            "dense_layers": 1,
+            "dense_units": 64,
+            "use_dropout": true,
+            "dropout_rate": 0.3529157199123839
+        }
+    },
+    "experiment": "hparams_search",
+    "dataset": {
+        "name": "datasets.MIT.wave_dataset.WaveDataset",
+        "params": {
+            "db_name": "vfdb",
+            "bypass_cache": false,
+            "rythm_filter": [
+                "(N",
+                "(VF"
+            ],
+            "rythm_map": {
+                "(NSR": "(N",
+                "(VFIB": "(VF",
+                "(VT": "(VF"
+            },
+            "label_map": {
+                "(N": 0,
+                "(VF": 1
+            },
+            "split_ratio": [
+                0.25,
+                0.25,
+                0.25,
+                0.25
+            ],
+            "train_batch_size": 32,
+            "eval_batch_size": 100,
+            "include_augmented": true,
+            "slice_window": 1250
+        }
+    },
+    "max_to_keep": 5,
+    "iteration": "104"
+}
