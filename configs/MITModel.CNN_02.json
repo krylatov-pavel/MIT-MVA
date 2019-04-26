@@ -3,7 +3,7 @@
         "name": "models.cnn_model_02.CNNModel02",
         "hparams": {
             "learning_rate": 0.0003,
-            "num_epochs": 10000,
+            "num_epochs": 8000,
             "normalize_inputs": false,
             "conv_layers": 5,
             "kernel_size": 3,
