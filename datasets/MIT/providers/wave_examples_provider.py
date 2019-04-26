@@ -9,6 +9,7 @@ from utils.helpers import flatten_list
 class WaveExamplesProvider(BaseExamplesProvider):
     def __init__(self, params):
         super(WaveExamplesProvider, self).__init__("wave", params)
+        self.test_set_size = params["test_set_size"]
 
     def _build_examples(self):
         ecgs = self._get_ECGs()
@@ -20,8 +21,14 @@ class WaveExamplesProvider(BaseExamplesProvider):
         wp = WavedataProvider()
 
         for i, s in enumerate(splits):
+            random.shuffle(s)
+
+            test_examples_num = int(self.test_set_size * len(s))
+            test_directory = os.path.join(self.examples_dir, wp.TEST_DIR)
+            wp.save(s[:test_examples_num], test_directory)
+
             directory = os.path.join(self.examples_dir, str(i))
-            wp.save(s, directory)
+            wp.save(s[test_examples_num:], directory)
 
         aug_slices = [e.get_slices(self.slice_window, self.rythm_filter, self.rythm_map, resample=True)  for e in ecgs]
         aug_slices = flatten_list(aug_slices)

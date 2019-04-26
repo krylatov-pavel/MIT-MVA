@@ -20,9 +20,6 @@ def main():
 
         experiment = Experiment(config.settings, config.model_dir)
 
-        if args.validate:
-            experiment.validate_dataset()
-        
         if args.accuracy:
             experiment.evaluate_accuracy()
         else:
@@ -30,6 +27,9 @@ def main():
             config.save(config.model_dir)
 
             experiment.run()
+
+            if args.validate:
+                experiment.validate_dataset()
     else:
         print("configuration file name is required. use -h for help")
 

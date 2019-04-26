@@ -6,6 +6,7 @@ from datasets.MIT.utils.data_structures import Example
 class BaseFileProvider(object):
     def __init__(self, extension):
         self.AUGMENTED_DIR = "augmented"
+        self.TEST_DIR = "testset"
         
         self.FILE_EXTENSION = extension
         self.name_generator = NameGenerator(extension)
