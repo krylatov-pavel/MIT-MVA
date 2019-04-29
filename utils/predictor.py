@@ -37,10 +37,10 @@ class Predictor(object):
             reader = csv.reader(f, quoting=csv.QUOTE_NONNUMERIC)
             signal = list(reader)
 
-        input_fn = tf.estimator.inputs.numpy_input_fn(np.array(signal, dtype="float32"), shuffle=False)
+        input_fn = tf.estimator.inputs.numpy_input_fn(np.array([signal], dtype="float32"), shuffle=False)
         predictions = [list(estimator.predict(input_fn))[0] for estimator in self.estimators]
 
-        predictions = sum(np.array(p["probabilities"] for p in predictions))
+        predictions = sum(np.array(p["probabilities"]) for p in predictions)
         predicted_label = np.argmax(predictions)
         predicted_label = self.label_rythm_map[predicted_label]
 

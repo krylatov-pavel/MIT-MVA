@@ -17,14 +17,12 @@ def inference():
     examples = [os.path.join(args.examples, f) for f in os.listdir(args.examples)]
     examples = [f for f in examples if os.path.isfile(f)]
 
-    predictions = [predictor.infer for e in examples]
+    predictions = [predictor.infer(e) for e in examples]
 
     correct = sum(int(prediction == true_label) for prediction, true_label in predictions)
     accuracy = correct / len(predictions)
 
     print("Accuracy: ", accuracy)
-
-    #TODO print misclassified examples
 
 if __name__ == "__main__":
     inference()
