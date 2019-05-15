@@ -61,11 +61,11 @@ class ECG(object):
 
         for i in range(slice_num):
             if reverse:
-                start_pos = start + i * slice_window
-                end_pos = start_pos + slice_window
-            else:
                 end_pos = end - i * slice_window
                 start_pos = end_pos - slice_window
+            else:
+                start_pos = start + i * slice_window
+                end_pos = start_pos + slice_window
             
             signal = list(self.signal[start_pos:end_pos])
 
