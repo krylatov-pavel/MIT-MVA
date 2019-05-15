@@ -29,7 +29,7 @@ def search_stats(directory):
     configs = [Config(c) for c in configs]
 
     data_row = {
-        "number": [c.settings.iteration for c in configs],
+        "number": [c.settings.iteration if "iteration" in c.settings else "default" for c in configs],
         "accuracy": [max_accuracy(c.model_dir) for c in configs],
         "learning_rate": [c.settings.model.hparams.learning_rate for c in configs],
         "conv_layers": [c.settings.model.hparams.conv_layers for c in configs],
