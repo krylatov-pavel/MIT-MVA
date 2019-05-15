@@ -42,11 +42,16 @@ class Config(object):
             return a
 
         def dict_to_bunch(dictionary):
-            bunch = Bunch(dictionary)
+            if isinstance(dictionary, dict):
+                bunch = Bunch(dictionary)
 
-            for key in bunch.keys():
-                if isinstance(bunch[key], dict):
-                    bunch[key] = dict_to_bunch(bunch[key])
+                for key in bunch.keys():
+                    if isinstance(bunch[key], dict):
+                        bunch[key] = dict_to_bunch(bunch[key])
+                    elif isinstance(bunch[key], list):
+                        bunch[key] = [dict_to_bunch(d) for d in bunch[key]]
+            else:
+                bunch = dictionary
 
             return bunch
 
