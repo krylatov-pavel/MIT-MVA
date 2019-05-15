@@ -5,6 +5,7 @@ from datasets.MIT.providers.database_provider import DatabaseProvider
 from datasets.MIT.providers.wavedata_provider import WavedataProvider
 from datasets.Arythmia.arythmia_ecg import ArythmiaECG
 from utils.helpers import flatten_list
+from utils.dirs import create_dirs
 
 class WaveExamplesProvider(BaseExamplesProvider):
     def __init__(self, params):
@@ -22,6 +23,10 @@ class WaveExamplesProvider(BaseExamplesProvider):
         for i, s in enumerate(splits):
             directory = os.path.join(self.examples_dir, str(i))
             wp.save(s, directory)
+
+            #TO DO: add actual augmentation
+            aug_directory = os.path.join(self.examples_dir, str(i), wp.AUGMENTED_DIR)
+            create_dirs([aug_directory])
 
     def _load_examples(self):
         example_splits = {}

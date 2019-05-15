@@ -1,4 +1,5 @@
 from utils.bitmask import to_bitmask
+from utils.helpers import flatten_list
 
 class Combinator(object):
     def __init__(self, accuracy=0.005):
@@ -15,21 +16,37 @@ class Combinator(object):
         """
         splits = []
 
-        #TO DO: if groups length is more then, say, 15, reduce groups number
-        #by combining several small groups into a bigger one
-
         remaining_groups = groups.copy()
 
+        """if groups length is more then, say, 20, reduce groups number
+        by combining several small groups into a bigger one
+        see __decouple_groups method comments
+        """
+        length_limit = 19
+
+        if len(groups) > length_limit:
+            print("Combinator: groups length is", len(groups), ", reducing groups number to", length_limit)
+
+            remaining_groups.sort(key=lambda tup: tup[1], reverse=True) 
+            for i in range(length_limit, len(groups)):
+                idx = (length_limit - 1) - (i % length_limit)
+                name = ",".join([remaining_groups[idx][0], remaining_groups[i][0]])
+                quantity = remaining_groups[idx][1] + remaining_groups[i][1]
+                remaining_groups[idx] = (name, quantity)
+
+            remaining_groups = remaining_groups[:length_limit]
+        
         for i in range(len(split_ratio) - 1):
             #relative to remaining groups
             ratio = split_ratio[i] / sum(split_ratio[i:])
 
             subgroup = self._get_subgroup(remaining_groups, ratio)
-            splits.append(subgroup)
-
+            
             remaining_groups = [el for el in remaining_groups if not (el in subgroup)]
 
-        splits.append(remaining_groups)
+            splits.append(self.__decouple_groups(subgroup, groups))
+
+        splits.append(self.__decouple_groups(remaining_groups, groups))
 
         return splits
 
@@ -55,11 +72,31 @@ class Combinator(object):
             if curr_error < best_combination_error:
                 best_combination_error = curr_error
                 best_combination = combination.copy()
-                #if curr_error <= self.accuracy:
-                    #consider this result as "good enough", don't waste calculation time
-                #    break
-        
+                
         return [el for el, include in zip(elements, best_combination) if include == 1]
 
     def __subgroup_size(self, elements, mask):
-        return sum(el[1] for el, include in zip(elements, mask) if include == 1)     
+        return sum(el[1] for el, include in zip(elements, mask) if include == 1)
+
+    def __decouple_groups(self, subgroup, groups):
+        """
+        when original number of groups is large enough, for performance purposes
+        smaller groups are combined fith large ones, for example:
+            before: ("100", 200), ("101", 300), ("102", 3), ("104", 4)
+            after: ("100,104", 204), ("101,102", 303)
+        this method is used to split combined groups into origninal groups.
+        in order to keep orginal group quantity number, original collection of groups needs to be provided
+        Args:
+            subgroup: combined group (ex: after)
+            grops: original list of all groups
+        Returns:
+            ex: before
+        """
+        result = []
+
+        for s in subgroup:
+            for name in s[0].split(","):
+                quantity = [g[1] for g in groups if g[0] == name][0]
+                result.append((name, quantity))
+        
+        return result
