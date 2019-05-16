@@ -1,5 +1,6 @@
 import tensorflow as tf
 import os
+import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -56,7 +57,11 @@ def plot_metrics(model_dir):
     df = pd.read_csv(fpath)
     steps = df.groupby("step")
 
-    metrics = [("accuracy", "b-"), ("accuracy0", "y-"), ("accuracy1", "g-")]
+    metrics = set(df.columns) - set(["model", "step"])
+    colors = ["b-", "y-", "-g", "-c", "-m", "-r"]
+    colors = colors * math.ceil(len(metrics) / len(colors))
+    metrics = [(m, c) for m, c in zip(metrics, colors)]
+
     plots = []
 
     fig = plt.figure()
