@@ -43,7 +43,7 @@ class LogMetricsHook(tf.train.SessionRunHook):
         stats = self._get_existing_stats()
         stats = stats.append(df)
 
-        stats.to_csv(self._fpath)
+        stats.to_csv(self._fpath, index=False)
 
     def _get_existing_stats(self):
         if os.path.exists(self._fpath):
