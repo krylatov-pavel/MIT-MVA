@@ -24,22 +24,22 @@
             "bypass_cache": false,
             "slice_window": 1000,
             "rythm_filter": [{
-                "name": "(N",
+                "name": "N",
                 "rythm": "(N",
                 "beats": [".", "N"]
             }, {
-                "name": "(L",
+                "name": "L",
                 "rythm": null,
                 "beats": ["L"]
             }, {
-                "name": "(R",
+                "name": "R",
                 "rythm": null,
                 "beats": ["R"]
             }],
             "label_map": {
-                "(N": 0,
-                "(L": 1,
-                "(R": 2
+                "N": 0,
+                "L": 1,
+                "R": 2
             },
             "rythm_map": {},
             "split_ratio": [0.25, 0.25, 0.25, 0.25],
