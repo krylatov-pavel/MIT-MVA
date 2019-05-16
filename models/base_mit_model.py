@@ -6,8 +6,9 @@ from metrics.class_accuracy import ClassAccuracy
 from metrics.f1_score_macro_avg import MacroAvgF1Score
 
 class BaseMitModel(BaseModel):
-    def __init__(self, hparams):
+    def __init__(self, hparams, dataset_params):
         self._hparams = hparams
+        self._label_map = dataset_params["label_map"]
     
     def build_model_fn(self):
         def model_fn(features, labels, mode, config):
@@ -50,9 +51,9 @@ class BaseMitModel(BaseModel):
                     "macro_avg_f1_score": MacroAvgF1Score(class_names).evaluate(labels, predictions)
                 }
 
-                for class_name in class_names:
-                    eval_metric_ops["class_accuracy_{}".format(class_name)] = \
-                        ClassAccuracy(class_name).evaluate(labels, predictions)
+                for class_name, class_label in self._label_map.items():
+                    eval_metric_ops["accuracy_{}".format(class_name)] = \
+                        ClassAccuracy(class_label).evaluate(labels, predictions)
 
                 return tf.estimator.EstimatorSpec(
                     mode=mode,

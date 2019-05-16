@@ -10,7 +10,7 @@ class Predictor(object):
         self.estimators = []
         self.label_rythm_map = {value: key for key, value in config.dataset.params["label_map"].items()}
 
-        model = get_class(config.model.name)(config.model.hparams)
+        model = get_class(config.model.name)(config.model.hparams, config.dataset.params)
         k = len(config.dataset.params.split_ratio)
         if k == 2:
             self.estimators.append(tf.estimator.Estimator(

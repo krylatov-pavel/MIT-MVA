@@ -24,7 +24,7 @@ class Experiment():
 
     def evaluate_accuracy(self):
         def _evaluate_model(config, model_dir, fold_num=None):
-            model = get_class(config.model.name)(config.model.hparams)
+            model = get_class(config.model.name)(config.model.hparams, config.dataset.params)
             dataset = get_class(config.dataset.name)(config.dataset.params)
 
             x, labels = dataset.get_eval_examples(fold_num)
@@ -67,7 +67,7 @@ class Experiment():
             print("This dataset object not support validation option")
     
     def _train_model(self, model_dir, fold_num=None):
-        model = get_class(self.config.model.name)(self.config.model.hparams)
+        model = get_class(self.config.model.name)(self.config.model.hparams, self.config.dataset.params)
         dataset = get_class(self.config.dataset.name)(self.config.dataset.params)
 
         if hasattr(dataset, "dataset_stats"):
@@ -95,12 +95,15 @@ class Experiment():
 
         hooks = None
         if fold_num != None:
+            metrics = {
+                "accuracy": "accuracy/value:0"
+            }
+
+            for class_name, class_label in self.config.dataset.params["label_map"].items():
+                metrics["accuracy_{}".format(class_name)] = "accuracy_{}/truediv:0".format(class_label)
+
             hooks = [LogMetricsHook(
-                metrics={
-                    "accuracy": "accuracy/value:0",
-                    "accuracy0": "accuracy_0/truediv:0",
-                    "accuracy1": "accuracy_1/truediv:0"
-                }, 
+                metrics=metrics, 
                 directory=os.path.dirname(model_dir),
                 model_name=fold_num
             )]
