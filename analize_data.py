@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import pandas as pd
 import os
@@ -9,10 +10,10 @@ from datasets.MIT.utils.data_structures import SliceMeta
 from collections import namedtuple
 
 DB_NAME = "mitdb"
-EXAMPLES_ROOT = "D:\\Study\\MIT\\data\\mitdb\\wave\\1000"
+EXAMPLES_ROOT = "D:\\Study\\MIT\\data\\mitdb\\wave\\"
 
-def _load_examples():
-    examples_dirs = (os.path.join(EXAMPLES_ROOT, d) for d in os.listdir(EXAMPLES_ROOT))
+def _load_examples(path):
+    examples_dirs = (os.path.join(path, d) for d in os.listdir(path))
     examples_dirs = (d for d in examples_dirs if os.path.isdir(d))
 
     files = WavedataProvider()
@@ -81,11 +82,15 @@ def _filter_examples(df):
     return l_examples, r_examples, n_examples
 
 def main():
-    ds = _load_examples()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--slice_window", "-w", help="Slice window size", type=int)
+    args = parser.parse_args()
+
+    ds = _load_examples(EXAMPLES_ROOT + str(args.slice_window))
     db = _load_raw_data()
     db = _filter_raw_data(db)
 
-    print("Slice window: {}".format(os.path.basename(EXAMPLES_ROOT)))
+    print("Slice window: {}".format(args.slice_window))
 
     #Check L/R/N distribution in dataset
     ds_groups = _filter_examples(ds)
@@ -129,6 +134,16 @@ def main():
     df = pd.DataFrame(data, columns=["record", "L", "R", "N"])
     print("\nRatio of examples_length/total_beats_length per record:")
     print(df)
+
+    #Total percent of class usage in dataset compared to database
+    db_beats = _filter_beats(db)
+    ds_rythms = _filter_examples(ds)
+
+    print("\nClass usage in dataset compared to database:")
+    for name, db_group, ds_group in zip(["L", "R", "N"], db_beats, ds_rythms):
+        db_len = (db_group.end - db_group.start).sum()
+        ds_len = (ds_group.end - ds_group.start).sum()
+        print("{}: {:.3f}".format(name, ds_len / db_len * 100))
 
 if __name__ == "__main__":
     main()
