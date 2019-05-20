@@ -16,25 +16,28 @@
             "dropout_rate": 0.3         
         }
     },
-    "experiment": "initial",
+    "experiment": "initial01",
     "dataset" : {
         "name" : "datasets.Arythmia.wave_dataset.ArythmiaWaveDataset",
         "params": {
             "db_name": "mitdb",
             "bypass_cache": false,
-            "slice_window": 1000,
+            "slice_window": 900,
             "rythm_filter": [{
                 "name": "N",
                 "rythm": "(N",
-                "beats": [".", "N"]
+                "beats": [".", "N"],
+                "use_augmentation": false
             }, {
                 "name": "L",
                 "rythm": null,
-                "beats": ["L"]
+                "beats": ["L"],
+                "use_augmentation": true
             }, {
                 "name": "R",
                 "rythm": null,
-                "beats": ["R"]
+                "beats": ["R"],
+                "use_augmentation": true
             }],
             "label_map": {
                 "N": 0,

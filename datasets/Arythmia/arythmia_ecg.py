@@ -6,7 +6,7 @@ class ArythmiaECG(ECG):
         super(ArythmiaECG, self).__init__(name, signal, labels, timecodes)
         self.beats = beats
 
-    def get_slices(self, slice_window, rythm_filter):
+    def get_slices(self, slice_window, rythm_filter, use_augmentation=False):
         slices = []
 
         curr_rythm = None
@@ -18,12 +18,17 @@ class ArythmiaECG(ECG):
         for rythm, beat, start, prev in zip(self.labels, self.beats, self.timecodes, np.append(0, self.timecodes[:-1])):
             curr_rythm = rythm if rythm else curr_rythm
             match_name = self._match(rythm_filter, curr_rythm, beat)
-
+            
             #end of a previous rythm sequence
             if curr_sequence["name"] and curr_sequence["name"] != match_name:
                 end = prev + ((start - prev) // 2)
+
                 new_slices = self._cut_slices(slice_window, curr_sequence["name"], curr_sequence["start"], end)
+                curr_sequence_filter = [f for f in rythm_filter if f.name == curr_sequence["name"]][0]
+                if curr_sequence_filter.use_augmentation and len(new_slices) > 0:
+                    new_slices.append(self._cut_slices(slice_window, curr_sequence["name"], curr_sequence["start"], end, reverse=True)[0])
                 slices.extend(new_slices)
+
                 curr_sequence["name"] = None
                 curr_sequence["start"] = None
 
@@ -49,8 +54,3 @@ class ArythmiaECG(ECG):
                     continue
             return f.name
         return None
-        
-            
-
-
-
