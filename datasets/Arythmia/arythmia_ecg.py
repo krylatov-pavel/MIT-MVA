@@ -6,8 +6,9 @@ class ArythmiaECG(ECG):
         super(ArythmiaECG, self).__init__(name, signal, labels, timecodes)
         self.beats = beats
 
-    def get_slices(self, slice_window, rythm_filter, use_augmentation=False):
+    def get_slices(self, slice_window, rythm_filter):
         slices = []
+        aug_slices = []
 
         curr_rythm = None
         curr_sequence = {
@@ -27,6 +28,7 @@ class ArythmiaECG(ECG):
                 curr_sequence_filter = [f for f in rythm_filter if f.name == curr_sequence["name"]][0]
                 if curr_sequence_filter.use_augmentation and len(new_slices) > 0:
                     new_slices.append(self._cut_slices(slice_window, curr_sequence["name"], curr_sequence["start"], end, reverse=True)[0])
+                    aug_slices.extend(self._cut_resampled_slices(slice_window, curr_sequence["name"], curr_sequence["start"], end))
                 slices.extend(new_slices)
 
                 curr_sequence["name"] = None
@@ -41,8 +43,12 @@ class ArythmiaECG(ECG):
         if curr_sequence["name"]:
             new_slices = self._cut_slices(slice_window, curr_sequence["name"], curr_sequence["start"], len(self.signal))
             slices.extend(new_slices)
+
+            curr_sequence_filter = [f for f in rythm_filter if f.name == curr_sequence["name"]][0]
+            if curr_sequence_filter.use_augmentation and len(new_slices) > 0:
+                aug_slices.extend(self._cut_resampled_slices(slice_window, curr_sequence["name"], curr_sequence["start"], len(self.signal)))
         
-        return slices
+        return slices, aug_slices
 
     def _match(self, rythm_filter, rythm, beat):
         for f in rythm_filter:
