@@ -12,6 +12,7 @@ class BaseExamplesProvider(object):
         self.name = name
 
         self.db_name = params["db_name"]
+        self.experiment = params["experiment"]
         self.slice_window = params["slice_window"]
         self.rythm_map = params["rythm_map"]
         self.rythm_filter = params["rythm_filter"]
@@ -71,7 +72,7 @@ class BaseExamplesProvider(object):
 
     @property
     def examples_dir(self):
-        return os.path.join("data", self.db_name, self.name, str(self.slice_window))
+        return os.path.join("data", self.db_name, self.name, self.experiment, str(self.slice_window))
 
     @property
     def examples_exists(self):

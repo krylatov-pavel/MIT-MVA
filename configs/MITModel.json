@@ -1,15 +1,16 @@
 {
     "model": {
         "name": "models.cnn_model.CNNModel",
+        "experiment": "initial",
         "hparams": {
             "learning_rate": 0.00003,
             "num_epochs": 10000,
             "class_num": 2            
         }
     },
-    "experiment": "initial",
     "dataset" : {
         "name" : "datasets.MIT.dataset.Dataset",
+        "experiment": "default",
         "params": {
             "db_name": "vfdb",
             "bypass_cache": false,

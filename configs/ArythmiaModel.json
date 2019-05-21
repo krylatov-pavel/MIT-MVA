@@ -1,6 +1,7 @@
 {
     "model": {
         "name": "models.arythmia_cnn_model.ArythmiaCNNModel",
+        "experiment": "initial",
         "hparams": {
             "class_num": 3,
             "learning_rate": 0.0003,
@@ -16,11 +17,11 @@
             "dropout_rate": 0.3         
         }
     },
-    "experiment": "add_augmented",
     "dataset" : {
         "name" : "datasets.Arythmia.wave_dataset.ArythmiaWaveDataset",
         "params": {
             "db_name": "mitdb",
+            "experiment": "4-fold_LRN",
             "bypass_cache": false,
             "slice_window": 900,
             "rythm_filter": [{

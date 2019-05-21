@@ -1,9 +1,10 @@
 {
     "model": {
         "name": "models.cnn_model_02.CNNModel02",
+        "experiment": "swap_bn_activation",
         "hparams": {
             "learning_rate": 0.0003,
-            "num_epochs": 8000,
+            "num_epochs": 4000,
             "normalize_inputs": false,
             "conv_layers": 5,
             "kernel_size": 3,
@@ -17,12 +18,12 @@
     },
     "dataset": {
         "name": "datasets.MIT.wave_dataset.WaveDataset",
+        "experiment": "default",
         "params": {
             "include_augmented": false,
             "slice_window": 1000,
             "split_ratio": [0.25, 0.25, 0.25, 0.25],
             "test_set_size": 0.03
         }
-    },
-    "experiment": "swap_bn_activation"
+    }
 }

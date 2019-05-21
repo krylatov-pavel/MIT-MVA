@@ -19,7 +19,7 @@ class Config(object):
         return os.path.join(
             "data\\experiments",
             self.settings.model.name.split(".")[-1],
-            self.settings.experiment,
+            self.settings.model.experiment,
             iteration
         )
 

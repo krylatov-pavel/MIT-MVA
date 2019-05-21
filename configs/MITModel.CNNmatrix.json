@@ -1,6 +1,7 @@
 {
     "model": {
         "name": "models.cnn_model_2d.CNNModel2d",
+        "experiment": "initial_matrix",
         "hparams": {
             "learning_rate": 0.00002,
             "num_epochs": 6000,
@@ -9,10 +10,10 @@
     },
     "dataset": {
         "name": "datasets.MIT.matrix_dataset.MatrixDataset",
+        "experiment": "default",
         "params": {
             "slice_window": 750,
             "image_height": 64
         }
-    },
-    "experiment": "initial_matrix"
+    }
 }
