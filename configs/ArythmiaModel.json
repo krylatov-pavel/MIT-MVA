@@ -24,6 +24,7 @@
             "experiment": "4-fold_LRN_equalize",
             "bypass_cache": false,
             "slice_window": 900,
+            "slice_overlap": 0.2,
             "rythm_filter": [{
                 "name": "N",
                 "rythm": "(N",

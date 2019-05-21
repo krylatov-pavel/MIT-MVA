@@ -14,31 +14,30 @@ class WaveExamplesProvider(BaseExamplesProvider):
         super(WaveExamplesProvider, self).__init__("wave", params)
 
         self.equalize = params["equalize_classes"]
+        self.slice_overlap = params["slice_overlap"]
 
     def _build_examples(self):
         ecgs = self._get_ECGs()
 
-        slices, aug_slices = unzip_list([e.get_slices(self.slice_window, self.rythm_filter) for e in ecgs])
+        slices = unzip_list([e.get_slices(self.slice_window, self.rythm_filter, self.slice_overlap) for e in ecgs])
         slices = flatten_list(slices)
-        aug_slices = flatten_list(aug_slices)
 
         splits = self._split_slices(slices)
-        aug_splits = self._split_aug_slices(aug_slices, splits)
 
         wp = WavedataProvider()
 
         for i in range(len(splits)):
-            examples, aug_examples = (splits[i], aug_splits[i])
+            examples = splits[i]
             
             if self.equalize:
-                examples, aug_examples = self._equalize_examples(examples, aug_examples)
+                examples, _ = self._equalize_examples(examples, [])
 
             directory = os.path.join(self.examples_dir, str(i))
             wp.save(examples , directory)
 
             #TO DO: add actual augmentation
             aug_directory = os.path.join(self.examples_dir, str(i), wp.AUGMENTED_DIR)
-            wp.save(aug_examples, aug_directory)
+            create_dirs([aug_directory])
 
     def _load_examples(self):
         example_splits = {}

@@ -6,14 +6,14 @@ class ArythmiaECG(ECG):
         super(ArythmiaECG, self).__init__(name, signal, labels, timecodes)
         self.beats = beats
 
-    def get_slices(self, slice_window, rythm_filter):
+    def get_slices(self, slice_window, rythm_filter, overlap):
         slices = []
-        aug_slices = []
 
         curr_rythm = None
         curr_sequence = {
             "name": None,
-            "start": None
+            "start": None,
+            "end": None
         }
 
         for rythm, beat, start, prev in zip(self.labels, self.beats, self.timecodes, np.append(0, self.timecodes[:-1])):
@@ -22,13 +22,8 @@ class ArythmiaECG(ECG):
             
             #end of a previous rythm sequence
             if curr_sequence["name"] and curr_sequence["name"] != match_name:
-                end = prev + ((start - prev) // 2)
-
-                new_slices = self._cut_slices(slice_window, curr_sequence["name"], curr_sequence["start"], end)
-                curr_sequence_filter = [f for f in rythm_filter if f.name == curr_sequence["name"]][0]
-                if curr_sequence_filter.use_augmentation and len(new_slices) > 0:
-                    new_slices.append(self._cut_slices(slice_window, curr_sequence["name"], curr_sequence["start"], end, reverse=True)[0])
-                    aug_slices.extend(self._cut_resampled_slices(slice_window, curr_sequence["name"], curr_sequence["start"], end))
+                curr_sequence["end"] = prev + ((start - prev) // 2)
+                new_slices = self.__cut_sequence(curr_sequence, slice_window, rythm_filter, overlap)
                 slices.extend(new_slices)
 
                 curr_sequence["name"] = None
@@ -41,14 +36,21 @@ class ArythmiaECG(ECG):
         
         #if current sequence ends with the ECG
         if curr_sequence["name"]:
-            new_slices = self._cut_slices(slice_window, curr_sequence["name"], curr_sequence["start"], len(self.signal))
+            curr_sequence["end"] = len(self.signal)
+            new_slices = self.__cut_sequence(curr_sequence, slice_window, rythm_filter, overlap)
             slices.extend(new_slices)
-
-            curr_sequence_filter = [f for f in rythm_filter if f.name == curr_sequence["name"]][0]
-            if curr_sequence_filter.use_augmentation and len(new_slices) > 0:
-                aug_slices.extend(self._cut_resampled_slices(slice_window, curr_sequence["name"], curr_sequence["start"], len(self.signal)))
         
-        return slices, aug_slices
+        return slices
+
+    def __cut_sequence(self, sequence, slice_window, rythm_filter, overlap):
+        new_slices = self._cut_slices(slice_window, sequence["name"], sequence["start"], sequence["end"], overlap=overlap)
+        
+        curr_sequence_filter = [f for f in rythm_filter if f.name == sequence["name"]][0]
+        if curr_sequence_filter.use_augmentation and len(new_slices) > 0:
+            new_slices.append(self._cut_slices(slice_window, sequence["name"], sequence["start"], sequence["end"], reverse=True)[0])
+        
+        return new_slices
+
 
     def _match(self, rythm_filter, rythm, beat):
         for f in rythm_filter:

@@ -49,22 +49,23 @@ class ECG(object):
 
         return slices
 
-    def _cut_slices(self, slice_window, label, start, end, reverse=False):
+    def _cut_slices(self, slice_window, label, start, end, reverse=False, overlap=0):
         """ Cust single heart rythm sequence into fixed-length slices
         Args:
             start: sequence start position, inclusive
             end: sequence end position, exclusive
             reverse: if True, start slicing from the end of a sequence
         """
-        slice_num = (end - start) // slice_window
+        length = end - start
+        slice_num = int(length >= slice_window) + np.maximum((length - slice_window) // (slice_window - slice_window * overlap), 0)
         slices = [None] * slice_num
 
         for i in range(slice_num):
             if reverse:
-                end_pos = end - i * slice_window
+                end_pos = end - np.maximum(i * slice_window - slice_window * overlap, 0) 
                 start_pos = end_pos - slice_window
             else:
-                start_pos = start + i * slice_window
+                start_pos = start + np.maximum(i * slice_window - slice_window * overlap, 0) 
                 end_pos = start_pos + slice_window
             
             signal = list(self.signal[start_pos:end_pos])
