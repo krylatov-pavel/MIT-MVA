@@ -57,15 +57,15 @@ class ECG(object):
             reverse: if True, start slicing from the end of a sequence
         """
         length = end - start
-        slice_num = int(length >= slice_window) + np.maximum((length - slice_window) // (slice_window - slice_window * overlap), 0)
+        slice_num = int(length >= slice_window) + np.maximum((length - slice_window) // (slice_window - int(slice_window * overlap)), 0)
         slices = [None] * slice_num
 
         for i in range(slice_num):
             if reverse:
-                end_pos = end - np.maximum(i * slice_window - slice_window * overlap, 0) 
+                end_pos = end - np.maximum(i * slice_window - i * int(slice_window * overlap), 0) 
                 start_pos = end_pos - slice_window
             else:
-                start_pos = start + np.maximum(i * slice_window - slice_window * overlap, 0) 
+                start_pos = start + np.maximum(i * slice_window - i * int(slice_window * overlap), 0) 
                 end_pos = start_pos + slice_window
             
             signal = list(self.signal[start_pos:end_pos])

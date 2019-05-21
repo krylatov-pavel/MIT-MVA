@@ -19,7 +19,7 @@ class WaveExamplesProvider(BaseExamplesProvider):
     def _build_examples(self):
         ecgs = self._get_ECGs()
 
-        slices = unzip_list([e.get_slices(self.slice_window, self.rythm_filter, self.slice_overlap) for e in ecgs])
+        slices = [e.get_slices(self.slice_window, self.rythm_filter, self.slice_overlap) for e in ecgs]
         slices = flatten_list(slices)
 
         splits = self._split_slices(slices)

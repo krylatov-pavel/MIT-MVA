@@ -1,9 +1,9 @@
 {
     "model": {
         "name": "models.arythmia_cnn_model.ArythmiaCNNModel",
-        "experiment": "initial",
+        "experiment": "2_classes",
         "hparams": {
-            "class_num": 3,
+            "class_num": 2,
             "learning_rate": 0.0003,
             "num_epochs": 4000,
             "normalize_inputs": false,
@@ -21,7 +21,7 @@
         "name" : "datasets.Arythmia.wave_dataset.ArythmiaWaveDataset",
         "params": {
             "db_name": "mitdb",
-            "experiment": "4-fold_LRN_equalize",
+            "experiment": "4-fold_RN_equalize_0.2overlap",
             "bypass_cache": false,
             "slice_window": 900,
             "slice_overlap": 0.2,
@@ -31,11 +31,6 @@
                 "beats": [".", "N"],
                 "use_augmentation": false
             }, {
-                "name": "L",
-                "rythm": null,
-                "beats": ["L"],
-                "use_augmentation": true
-            }, {
                 "name": "R",
                 "rythm": null,
                 "beats": ["R"],
@@ -43,8 +38,7 @@
             }],
             "label_map": {
                 "N": 0,
-                "L": 1,
-                "R": 2
+                "R": 1
             },
             "equalize_classes": true,
             "rythm_map": {},
@@ -52,7 +46,7 @@
             "test_set_size": 0.0,
             "train_batch_size": 32,
             "eval_batch_size": 100,
-            "include_augmented": true
+            "include_augmented": false
         }
     },
     "max_to_keep": 5
