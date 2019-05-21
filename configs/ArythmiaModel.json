@@ -16,7 +16,7 @@
             "dropout_rate": 0.3         
         }
     },
-    "experiment": "initial01",
+    "experiment": "add_augmented",
     "dataset" : {
         "name" : "datasets.Arythmia.wave_dataset.ArythmiaWaveDataset",
         "params": {
@@ -49,7 +49,7 @@
             "test_set_size": 0.0,
             "train_batch_size": 32,
             "eval_batch_size": 100,
-            "include_augmented": false
+            "include_augmented": true
         }
     },
     "max_to_keep": 5
