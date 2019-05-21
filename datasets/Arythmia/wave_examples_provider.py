@@ -13,6 +13,8 @@ class WaveExamplesProvider(BaseExamplesProvider):
     def __init__(self, params):
         super(WaveExamplesProvider, self).__init__("wave", params)
 
+        self.equalize = params["equalize_classes"]
+
     def _build_examples(self):
         ecgs = self._get_ECGs()
 
@@ -26,7 +28,10 @@ class WaveExamplesProvider(BaseExamplesProvider):
         wp = WavedataProvider()
 
         for i in range(len(splits)):
-            examples, aug_examples = self._equalize_examples(splits[i], aug_splits[i])
+            examples, aug_examples = (splits[i], aug_splits[i])
+            
+            if self.equalize:
+                examples, aug_examples = self._equalize_examples(examples, aug_examples)
 
             directory = os.path.join(self.examples_dir, str(i))
             wp.save(examples , directory)
