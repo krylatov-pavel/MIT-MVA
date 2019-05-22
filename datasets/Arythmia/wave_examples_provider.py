@@ -47,6 +47,8 @@ class WaveExamplesProvider(BaseExamplesProvider):
             directory = os.path.join(self.examples_dir, str(i))
             examples = wp.load(directory, include_augmented=True)
 
+            random.shuffle(examples[0])
+
             example_splits[i] = {
                 "original": examples[0],
                 "augmented": examples[1]
