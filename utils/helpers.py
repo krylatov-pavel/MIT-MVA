@@ -1,3 +1,5 @@
+import numpy as np
+
 def get_class(name):
     parts = name.split(".")
     module_name = ".".join(parts[:-1])
@@ -14,6 +16,11 @@ def flatten_list(l):
 
 def unzip_list(l):
     return map(list, zip(*l))
+
+def rescale(x, old_min, old_max, new_min, new_max):
+    x_arr = np.array(x)
+    rescaled_x = (new_max - new_min) * (x_arr - old_min) / (old_max - old_min) + new_min
+    return rescaled_x
 
 def avg_f1_score(labels, predictions):
     epsilon = 1e-10

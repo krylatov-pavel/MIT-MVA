@@ -6,7 +6,8 @@ from datasets.MIT.base.base_examples_provider import BaseExamplesProvider
 from datasets.MIT.providers.database_provider import DatabaseProvider
 from datasets.MIT.providers.wavedata_provider import WavedataProvider
 from datasets.Arythmia.arythmia_ecg import ArythmiaECG
-from utils.helpers import flatten_list, unzip_list
+from datasets.MIT.utils.data_structures import Example
+from utils.helpers import flatten_list, unzip_list, rescale
 from utils.dirs import create_dirs
 
 class WaveExamplesProvider(BaseExamplesProvider):
@@ -14,6 +15,7 @@ class WaveExamplesProvider(BaseExamplesProvider):
         super(WaveExamplesProvider, self).__init__("wave", params)
 
         self.equalize = params["equalize_classes"]
+        self.scale = params.scale if hasattr(params, "scale") else False
         self.slice_overlap = params["slice_overlap"]
 
     def _build_examples(self):
@@ -48,6 +50,13 @@ class WaveExamplesProvider(BaseExamplesProvider):
             examples = wp.load(directory, include_augmented=True)
 
             random.shuffle(examples[0])
+
+            if self.scale:
+                examples = ([Example(x=rescale(e.x, self.scale.old_min, self.scale.old_max, self.scale.new_min, self.scale.new_max),
+                    y=e.y,
+                    name=e.name
+                ) for e in examples[0]],
+                examples[1])
 
             example_splits[i] = {
                 "original": examples[0],
