@@ -10,7 +10,7 @@ from datasets.MIT.utils.data_structures import SliceMeta
 from collections import namedtuple
 
 DB_NAME = "mitdb"
-EXAMPLES_ROOT = "D:\\Study\\MIT\\data\\mitdb\\wave\\"
+EXAMPLES_ROOT = "D:\\Study\\MIT\\data\\mitdb\\wave\\4-fold_RN_equalize_0.2overlap\\"
 
 def _load_examples(path):
     examples_dirs = (os.path.join(path, d) for d in os.listdir(path))
@@ -22,12 +22,12 @@ def _load_examples(path):
     examples = flatten_list(examples)
 
     names = NameGenerator(".csv")
-    examples = (names.get_metadata(e.name) for e in examples)
-    examples = [SliceMeta(e.record, e.rythm, int(e.start), int(e.end)) for e in examples]
+    examples_meta = (names.get_metadata(e.name) for e in examples)
+    examples_meta = [SliceMeta(e.record, e.rythm, int(e.start), int(e.end)) for e in examples_meta]
 
-    df = pd.DataFrame(data=examples, columns=["record", "rythm", "start", "end"])
+    df = pd.DataFrame(data=examples_meta, columns=["record", "rythm", "start", "end"])
 
-    return df
+    return df, examples
 
 def _load_raw_data():
     database = DatabaseProvider(DB_NAME)
@@ -86,7 +86,7 @@ def main():
     parser.add_argument("--slice_window", "-w", help="Slice window size", type=int)
     args = parser.parse_args()
 
-    ds = _load_examples(EXAMPLES_ROOT + str(args.slice_window))
+    ds, examples = _load_examples(EXAMPLES_ROOT + str(args.slice_window))
     db = _load_raw_data()
     db = _filter_raw_data(db)
 
@@ -144,6 +144,12 @@ def main():
         db_len = (db_group.end - db_group.start).sum()
         ds_len = (ds_group.end - ds_group.start).sum()
         print("{}: {:.3f}".format(name, ds_len / db_len * 100))
+
+    #Calcualte min, max, mean and var
+    signal_series = pd.Series(flatten_list([e.x for e in examples]))
+    print("\nSignal stats:")
+    print("min: {}".format(signal_series.min()))
+    print("max: {}".format(signal_series.max()))
 
 if __name__ == "__main__":
     main()

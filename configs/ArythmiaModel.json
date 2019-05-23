@@ -1,13 +1,13 @@
 {
     "model": {
         "name": "models.arythmia_cnn_model.ArythmiaCNNModel",
-        "experiment": "2_classes_scale",
+        "experiment": "2_classes_normalize",
         "hparams": {
             "class_num": 2,
             "learning_rate": 0.046511,
             "num_epochs": 4000,
-            "normalize_inputs": false,
-            "conv_layers": 5,
+            "conv_layers": 9,
+            "conv_layers_per_res_block": 3,
             "kernel_size": 3,
             "filters_num": 32,
             "use_batch_norm": true,
@@ -41,12 +41,8 @@
                 "R": 1
             },
             "equalize_classes": true,
-            "scale": {
-                "old_min": -5.12,
-                "old_max": 3.2,
-                "new_min": -128,
-                "new_max": 128
-            },      
+            "rescale": false,
+            "normalize": true,      
             "rythm_map": {},
             "split_ratio": [0.25, 0.25, 0.25, 0.25],
             "test_set_size": 0.0,

@@ -7,10 +7,6 @@ class ArythmiaCNNModel(BaseMitModel):
         training = mode == tf.estimator.ModeKeys.TRAIN
         pre_logits = features
 
-        normalize = self._get_hparam("normalize_inputs", default_value=False)
-        if normalize:
-            pre_logits = normalize_inputs(pre_logits, mode)
-
         conv_layers = self._get_hparam("conv_layers", default_value=0)
         kernel_size = self._get_hparam("kernel_size", default_value=3)
         filters_num = self._get_hparam("filters_num", default_value=16)

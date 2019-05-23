@@ -7,7 +7,7 @@ from datasets.MIT.providers.database_provider import DatabaseProvider
 from datasets.MIT.providers.wavedata_provider import WavedataProvider
 from datasets.Arythmia.arythmia_ecg import ArythmiaECG
 from datasets.MIT.utils.data_structures import Example
-from utils.helpers import flatten_list, unzip_list, rescale
+from utils.helpers import flatten_list, unzip_list, rescale, normalize
 from utils.dirs import create_dirs
 
 class WaveExamplesProvider(BaseExamplesProvider):
@@ -15,7 +15,8 @@ class WaveExamplesProvider(BaseExamplesProvider):
         super(WaveExamplesProvider, self).__init__("wave", params)
 
         self.equalize = params["equalize_classes"]
-        self.scale = params.scale if hasattr(params, "scale") else False
+        self.rescale = params.rescale if hasattr(params, "rescale") else False
+        self.normalize = params.normalize
         self.slice_overlap = params["slice_overlap"]
 
     def _build_examples(self):
@@ -50,18 +51,28 @@ class WaveExamplesProvider(BaseExamplesProvider):
             examples = wp.load(directory, include_augmented=True)
 
             random.shuffle(examples[0])
-
-            if self.scale:
-                examples = ([Example(x=rescale(e.x, self.scale.old_min, self.scale.old_max, self.scale.new_min, self.scale.new_max),
-                    y=e.y,
-                    name=e.name
-                ) for e in examples[0]],
-                examples[1])
+            random.shuffle(examples[1])
 
             example_splits[i] = {
                 "original": examples[0],
                 "augmented": examples[1]
             }
+
+        if self.rescale:
+            min, max, _, _ = self._calc_stats(example_splits)
+            for key in example_splits:
+                example_splits[key] = {
+                    "original": self._rescale_examples(example_splits[key]["original"], min, max, self.rescale),
+                    "augmented": self._rescale_examples(example_splits[key]["augmented"], min, max, self.rescale)
+                }
+
+        if self.normalize:
+            _, _, mean, std = self._calc_stats(example_splits)
+            for key in example_splits:
+                example_splits[key] = {
+                    "original": self._normalize(example_splits[key]["original"], mean, std),
+                    "augmented": self._normalize(example_splits[key]["augmented"], mean, std)
+                }
         
         return example_splits
 
@@ -113,4 +124,23 @@ class WaveExamplesProvider(BaseExamplesProvider):
             examples_eq.extend(class_examples[:take])
             aug_examples_eq.extend(aug_class_examples[:take_aug])
 
-        return examples_eq, aug_examples_eq   
+        return examples_eq, aug_examples_eq
+
+    def _calc_stats(self, splits):
+        data = [s["original"] + s["augmented"] for key, s in splits.items()]
+        data = flatten_list(data)
+        data = [e.x for e in data]
+        data = np.array(data)
+
+        min = np.min(data)
+        max = np.max(data)
+        mean = np.mean(data)
+        std = np.std(data)
+
+        return min, max, mean, std
+
+    def _rescale_examples(self, examples, min, max, scale):
+        return [Example(x=rescale(e.x, min, max, scale.min, scale.max), y=e.y, name=e.name) for e in examples]
+
+    def _normalize(self, examples, mean, std):
+        return [Example(x=normalize(e.x, mean, std), y=e.y, name=e.name) for e in examples]
