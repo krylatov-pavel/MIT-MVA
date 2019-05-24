@@ -1,0 +1,54 @@
+{
+    "model": {
+        "name": "models.arythmia_resnet_pooling_model.ArythmiaResnetPoolingModel",
+        "experiment": "initial",
+        "hparams": {
+            "class_num": 2,
+            "learning_rate": 0.046511,
+            "num_epochs": 4000,
+            "conv_layers": 7,
+            "kernel_size": 3,
+            "filters_num": 32,
+            "use_batch_norm": true,
+            "dense_layers": 1,
+            "dense_units": 128,
+            "use_dropout": true,
+            "dropout_rate": 0.332
+        }
+    },
+    "dataset" : {
+        "name" : "datasets.Arythmia.wave_dataset.ArythmiaWaveDataset",
+        "params": {
+            "db_name": "mitdb",
+            "experiment": "4-fold_RN_equalize_0.2overlap",
+            "bypass_cache": false,
+            "slice_window": 900,
+            "slice_overlap": 0.2,
+            "rythm_filter": [{
+                "name": "N",
+                "rythm": "(N",
+                "beats": [".", "N"],
+                "use_augmentation": false
+            }, {
+                "name": "R",
+                "rythm": null,
+                "beats": ["R"],
+                "use_augmentation": true
+            }],
+            "label_map": {
+                "N": 0,
+                "R": 1
+            },
+            "equalize_classes": true,
+            "rescale": false,
+            "normalize": true,      
+            "rythm_map": {},
+            "split_ratio": [0.25, 0.25, 0.25, 0.25],
+            "test_set_size": 0.0,
+            "train_batch_size": 32,
+            "eval_batch_size": 100,
+            "include_augmented": false
+        }
+    },
+    "max_to_keep": 5
+}
