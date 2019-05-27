@@ -10,7 +10,6 @@ from datasets.MIT.utils.data_structures import SliceMeta
 from collections import namedtuple
 
 DB_NAME = "mitdb"
-EXAMPLES_ROOT = "D:\\Study\\MIT\\data\\mitdb\\wave\\4-fold_RN_equalize_0.2overlap\\"
 
 def _load_examples(path):
     examples_dirs = (os.path.join(path, d) for d in os.listdir(path))
@@ -64,53 +63,58 @@ def _filter_raw_data(df):
     normal = (df.rythm == "N") & (df.beat == "N")
     left = df.beat == "L"
     rigth = df.beat == "R"
+    b = df.rythm == "B"
 
-    return df[normal | left | rigth]
+    return df[normal | left | rigth | b]
 
 def _filter_beats(df):
     l_beats = df[df.beat == "L"]
     r_beats = df[df.beat == "R"]
     n_beats = df[(df.rythm == "N") & ((df.beat == "N") | (df.beat == "."))]
+    b_beats = df[df.rythm == "B"]
 
-    return l_beats, r_beats, n_beats
+    return l_beats, r_beats, n_beats, b_beats
 
 def _filter_examples(df):
     l_examples = df[df.rythm == "L"]
     r_examples = df[df.rythm == "R"]
     n_examples = df[df.rythm == "N"]
+    b_examples = df[df.rythm == "B"]
 
-    return l_examples, r_examples, n_examples
+    return l_examples, r_examples, n_examples, b_examples
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--slice_window", "-w", help="Slice window size", type=int)
+    parser.add_argument("--examples", "-e", help="Examples root directory", type=str)
     args = parser.parse_args()
 
-    ds, examples = _load_examples(EXAMPLES_ROOT + str(args.slice_window))
+    ds, examples = _load_examples(args.examples)
     db = _load_raw_data()
     db = _filter_raw_data(db)
 
-    print("Slice window: {}".format(args.slice_window))
+    print("Slice window: {}".format(os.path.dirname(args.examples)))
 
     #Check L/R/N distribution in dataset
     ds_groups = _filter_examples(ds)
     print("\nclass distribution in dataset:")
-    for name, group in zip(["L", "R", "N"], ds_groups):
+    for name, group in zip(["L", "R", "N", "B"], ds_groups):
         print("{}: count {},  ratio {:.3f}%".format(name, len(group), len(group) / len(ds) * 100 ))
 
     #Check how L and R beats combined with rythm type
-    l, r, _ = _filter_beats(db)
+    """l, r, _, _ = _filter_beats(db)
     print("\nL and R beat combination with rythm:")
     for name, beat in zip(["L", "R"], [l , r]):
         for rythm, group in beat.groupby("rythm"):
             print("{} with {}: {:.3f}%".format(rythm, name, len(group) / len(beat) * 100 ))
+    """
 
     #Check what part of raw data from database was used in dataset
     data = {
         "record": [],
         "L": [],
         "R": [],
-        "N": []
+        "N": [],
+        "B": []
     }
 
     for record in db.record.unique():
@@ -121,7 +125,7 @@ def main():
         ds_rythms = _filter_examples(ds_records)
 
         data["record"].append(record)
-        for name, db_group, ds_group in zip(["L", "R", "N"], db_beats, ds_rythms):
+        for name, db_group, ds_group in zip(["L", "R", "N", "B"], db_beats, ds_rythms):
             if (len(db_group) > 0 and len(ds_group) > 0):
                 db_len = (db_group.end - db_group.start).sum()
                 ds_len = (ds_group.end - ds_group.start).sum()
@@ -131,7 +135,7 @@ def main():
                 ratio = 0
             data[name].append(ratio)
         
-    df = pd.DataFrame(data, columns=["record", "L", "R", "N"])
+    df = pd.DataFrame(data, columns=["record", "L", "R", "N", "B"])
     print("\nRatio of examples_length/total_beats_length per record:")
     print(df)
 
@@ -140,7 +144,7 @@ def main():
     ds_rythms = _filter_examples(ds)
 
     print("\nClass usage in dataset compared to database:")
-    for name, db_group, ds_group in zip(["L", "R", "N"], db_beats, ds_rythms):
+    for name, db_group, ds_group in zip(["L", "R", "N", "B"], db_beats, ds_rythms):
         db_len = (db_group.end - db_group.start).sum()
         ds_len = (ds_group.end - ds_group.start).sum()
         print("{}: {:.3f}".format(name, ds_len / db_len * 100))
