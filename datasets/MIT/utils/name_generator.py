@@ -17,7 +17,7 @@ class NameGenerator(object):
         )
 
     def get_metadata(self, fname):
-        regex = "^\d+_(?P<rythm>[(\w]+)_(?P<record>\d+)_(?P<start>\d+)-(?P<end>\d+)"
+        regex = "^\d+_(?P<rythm>[(\w]+)_(?P<record>[\.\d]+)_(?P<start>\d+)-(?P<end>\d+)"
         m = re.match(regex, fname)
         if m:
             return SliceMeta(

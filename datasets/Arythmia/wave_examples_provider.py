@@ -1,4 +1,5 @@
 import os
+import math
 import numpy as np
 import pandas as pd
 import random
@@ -6,7 +7,7 @@ from datasets.MIT.base.base_examples_provider import BaseExamplesProvider
 from datasets.MIT.providers.database_provider import DatabaseProvider
 from datasets.MIT.providers.wavedata_provider import WavedataProvider
 from datasets.Arythmia.arythmia_ecg import ArythmiaECG
-from datasets.MIT.utils.data_structures import Example
+from datasets.MIT.utils.data_structures import Example, Slice
 from utils.helpers import flatten_list, unzip_list, rescale, normalize
 from utils.dirs import create_dirs
 
@@ -24,6 +25,12 @@ class WaveExamplesProvider(BaseExamplesProvider):
 
         slices = [e.get_slices(self.slice_window, self.rythm_filter, self.slice_overlap) for e in ecgs]
         slices = flatten_list(slices)
+
+        for f in self.rythm_filter:
+            if hasattr(f, "allow_spread") and f.allow_spread:
+                not_class = [s for s in slices if s.rythm != f.name]
+                spreaded_class = self._spread_slices([s for s in slices if s.rythm == f.name], len(self.split_ratio))
+                slices = not_class + spreaded_class
 
         splits = self._split_slices(slices)
 
@@ -147,3 +154,20 @@ class WaveExamplesProvider(BaseExamplesProvider):
 
     def _normalize(self, examples, mean, std):
         return [Example(x=normalize(e.x, mean, std), y=e.y, name=e.name) for e in examples]
+
+    def _spread_slices(self, slices, k):
+        spread = []
+        df = pd.DataFrame(slices)
+
+        for record, group in df.groupby("record"):
+            slices_in_fold = math.ceil(len(group) / k)
+            group_slices = list(group.itertuples())
+            for i in range(k):
+                start = i * slices_in_fold
+                end = (i + 1) * slices_in_fold
+                if end > len(group):
+                    end = len(group)
+                spreaded_slices = [Slice("{}.{}".format(record, i), s.rythm, s.start, s.end, s.signal) for s in group_slices[start:end]]
+                spread.extend(spreaded_slices)
+
+        return spread

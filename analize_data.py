@@ -83,6 +83,23 @@ def _filter_examples(df):
 
     return l_examples, r_examples, n_examples, b_examples
 
+def _class_length(df, name, rythm, beat, fs=360):
+    if rythm:
+        mask = df.rythm == rythm
+    if beat:
+        beat_mask = df.beat == beat
+        if rythm:
+            mask = mask & beat_mask
+        else:
+            mask = beat_mask
+    
+    df_filtered = df[mask]
+
+    print("\nclass {} distribution:".format(name))
+    for record, signals in df_filtered.groupby("record"):
+        duration = (signals.end - signals.start).sum() / fs
+        print("{}: {:.2f}s".format(record, duration))
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--examples", "-e", help="Examples root directory", type=str)
@@ -90,6 +107,12 @@ def main():
 
     ds, examples = _load_examples(args.examples)
     db = _load_raw_data()
+
+    _class_length(db, "(R Right bundle branch block beat", None, "R")
+    _class_length(db, "(BII 2° heart block", "BII", None)
+    _class_length(db, "(SBR	Sinus bradycardia", "SBR", None)
+
+    
     db = _filter_raw_data(db)
 
     print("Slice window: {}".format(os.path.dirname(args.examples)))
@@ -99,14 +122,6 @@ def main():
     print("\nclass distribution in dataset:")
     for name, group in zip(["L", "R", "N", "B"], ds_groups):
         print("{}: count {},  ratio {:.3f}%".format(name, len(group), len(group) / len(ds) * 100 ))
-
-    #Check how L and R beats combined with rythm type
-    """l, r, _, _ = _filter_beats(db)
-    print("\nL and R beat combination with rythm:")
-    for name, beat in zip(["L", "R"], [l , r]):
-        for rythm, group in beat.groupby("rythm"):
-            print("{} with {}: {:.3f}%".format(rythm, name, len(group) / len(beat) * 100 ))
-    """
 
     #Check what part of raw data from database was used in dataset
     data = {

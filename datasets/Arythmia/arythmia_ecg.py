@@ -57,6 +57,9 @@ class ArythmiaECG(ECG):
             if f.rythm:
                 if f.rythm != rythm:
                     continue
+            if hasattr(f, "not_rythm"):
+                if rythm in f.not_rythm:
+                    continue
             if len(f.beats) > 0:
                 if not beat in f.beats:
                     continue
