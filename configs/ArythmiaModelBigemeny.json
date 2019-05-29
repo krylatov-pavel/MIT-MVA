@@ -1,7 +1,7 @@
 {
     "model": {
         "name": "models.arythmia_cnn_model.ArythmiaCNNModel",
-        "experiment": "3_classes_normalize",
+        "experiment": "3_classes_normalize_equalizer",
         "hparams": {
             "class_num": 3,
             "learning_rate": 0.046511,
@@ -20,7 +20,7 @@
         "name" : "datasets.Arythmia.wave_dataset.ArythmiaWaveDataset",
         "params": {
             "db_name": "mitdb",
-            "experiment": "4-fold_RNB_equalize_0.25overlap",
+            "experiment": "4-fold_RNB_equalizer_0.25overlap",
             "bypass_cache": false,
             "slice_window": 1080,
             "slice_overlap": 0.25,
@@ -45,7 +45,11 @@
                 "R": 1,
                 "B": 2
             },
-            "equalize_classes": true,
+            "equalize_classes": {
+                "N": true,
+                "B": false,
+                "R": false
+            },
             "rescale": false,
             "normalize": true,      
             "rythm_map": {},

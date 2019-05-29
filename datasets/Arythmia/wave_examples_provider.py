@@ -33,7 +33,7 @@ class WaveExamplesProvider(BaseExamplesProvider):
             examples = splits[i]
             
             if self.equalize:
-                examples, _ = self._equalize_examples(examples, [])
+                examples, _ = self._equalize_examples(examples, [], equalizer=self.equalize)
 
             directory = os.path.join(self.examples_dir, str(i))
             wp.save(examples , directory)
@@ -92,7 +92,7 @@ class WaveExamplesProvider(BaseExamplesProvider):
 
         return self._ecgs
 
-    def _equalize_examples(self, examples, aug_examples):
+    def _equalize_examples(self, examples, aug_examples, equalizer=None):
         examples_eq = []
         aug_examples_eq = []
         
@@ -101,18 +101,21 @@ class WaveExamplesProvider(BaseExamplesProvider):
         orig_distribution = df.rythm.value_counts().sort_values().iteritems()
         orig_distribution = list(orig_distribution)
 
-        min_class, min_count = orig_distribution[0]
-        
-        examples_eq.extend([e for e in examples if e.rythm == min_class])
-        aug_examples_eq.extend([e for e in aug_examples if e.rythm == min_class])
+        if equalizer:
+            min_class, min_count = [d for d in orig_distribution if not equalizer[d[0]]][-1]
+        else:
+            min_class, min_count = orig_distribution[0]
 
-        min_count += len(aug_examples_eq) 
+        min_count += len([e for e in aug_examples if e.rythm == min_class])
 
-        for class_name, class_count in orig_distribution[1:]:
+        for class_name, class_count in orig_distribution:
             class_examples = [e for e in examples if e.rythm == class_name]
             aug_class_examples = [e for e in aug_examples if e.rythm == class_name]
 
-            if class_count <= min_count:
+            if equalizer and not equalizer[class_name]:
+                take = len(class_examples)
+                take_aug = len(aug_class_examples)
+            elif class_count <= min_count:
                 take = class_count
                 take_aug = min_count - class_count
                 random.shuffle(aug_class_examples)
