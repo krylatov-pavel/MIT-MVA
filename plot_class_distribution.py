@@ -37,22 +37,32 @@ def _filter(df, rythm=None, beats=[]):
 
     return df[mask]
 
-def _histogram(df, name):
-    labels = []
+def _format_sec(sec):
+    return str(datetime.timedelta(seconds=sec)).split(".")[0]
+
+def _histogram(df, name, records):
     durations = []
     
-    for record, g in df.groupby("record"):
-        labels.append(record)
-        durations.append((g.end - g.start).sum() / FS)
-    total_duration = str(datetime.timedelta(seconds=sum(durations)))
+    for rec in records:
+        beats_in_record = df[df.record == rec]
+        duration = (beats_in_record.end - beats_in_record.start).sum() if len(beats_in_record) > 0 else 0
+        durations.append(duration / FS)
+    total_duration = _format_sec(sum(durations))
 
-    y_pos = np.arange(len(labels))
+    x_pos = np.arange(len(records))
+    y_pos = np.arange(16) * 120.0
     
-    plt.figure()
-    plt.bar(y_pos, durations, align='center', width=0.5)
-    plt.xticks(y_pos, labels, rotation=90)
-    plt.ylabel('Duration(sec)')
-    plt.title("{}, total: {}".format(name, total_duration))
+    plt.figure(figsize=(20,10))
+    plt.bar(x_pos, durations)
+
+    plt.xticks(x_pos, records, rotation=90)
+    plt.yticks(y_pos, [_format_sec(sec) for sec in y_pos])
+
+    plt.ylabel("Duration(sec)")
+    plt.xlabel("Records")
+
+    plt.title("{} (total: {})".format(name, total_duration))
+    plt.grid(axis="y")
 
     fname = "{}.png".format(name)
     fpath = os.path.join(PLOT_PATH, DB_NAME, fname)
@@ -91,16 +101,17 @@ def _load_raw_data():
 
 def main():
     df = _load_raw_data()
+    records = df.record.unique()
     
     create_dirs([os.path.join(PLOT_PATH, DB_NAME)])
 
     for b in BEATS:
         beats = _filter(df, beats=b[0])
-        _histogram(beats, name=b[1])
+        _histogram(beats, name=b[1], records=records)
     
     for r in RYTHMS:
         beats = _filter(df, rythm=r[0])
-        _histogram(beats, name=r[1])
+        _histogram(beats, name=r[1], records=records)
 
 if __name__ == "__main__":
     main()
