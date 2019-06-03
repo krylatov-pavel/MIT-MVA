@@ -13,12 +13,40 @@ PLOT_PATH = "data\\stats"
 CLASSES_DIR = "classes"
 FS = 360
 BEATS = [
-    (["L"], "Left bundle branch block beat",),
-    (["R"], "Right bundle branch block beat"),
-    (["A"], "Atrial premature beat")
+    #(["N", "·"], "Normal beat", "N"),
+    (["L"], "Left bundle branch block beat", "L"),
+    (["R"], "Right bundle branch block beat", "R"),
+    (["A"], "Atrial premature beat", "A"),
+    (["a"], "Aberrated atrial premature beat", "a"),
+    (["J"], "Nodal (junctional) premature beat", "J"),
+    (["S"], "Supraventricular premature beat", "S"),
+    (["V"], "Premature ventricular contraction", "V"),
+    (["F"], "Fusion of ventricular and normal beat", "F"),
+    (["!"], "Ventricular flutter wave", "!"),
+    (["e"], "Atrial escape beat", "e"),
+    (["j"], "Nodal (junctional) escape beat", "j"),
+    (["E"], "Ventricular escape beat", "E"),
+    (["/"], "Paced beat", "/"),
+    (["f"], "Fusion of paced and normal beat", "f"),
+    (["x"], "Non-conducted P-wave (blocked APB)", "x")
+
 ]
 RYTHMS = [
-    ("(AB", "Atrial bigeminy")
+    ("(AB", "Atrial bigeminy", "AB"),
+    ("(AFIB", "Atrial fibrillation", "AFIB"),
+    ("(AFL", "Atrial flutter", "AFL"),
+    ("(B", "Ventricular bigeminy", "B"),
+    ("(BII", "2° heart block", "BII"),
+    ("(IVR", "Idioventricular rhythm", "IVR"),
+    #("(N", "Normal sinus rhythm", "N"),
+    ("(NOD", "Nodal (A-V junctional) rhythm", "NOD"),
+    ("(P", "Paced rhythm", "P"),
+    ("(PREX", "Pre-excitation (WPW)", "PREX"),
+    ("(SBR", "Sinus bradycardia", "SBR"),
+    ("(SVTA", "Supraventricular tachyarrhythmia", "SVTA"),
+    ("(T", "Ventricular trigeminy", "T"),
+    ("(VFL", "Ventricular flutter", "VFL"),
+    ("(VT", "Ventricular tachycardia", "VT")
 ]
 
 def _filter(df, rythm=None, beats=[]):
@@ -41,7 +69,7 @@ def _filter(df, rythm=None, beats=[]):
 def _format_sec(sec):
     return str(datetime.timedelta(seconds=sec)).split(".")[0]
 
-def _plot_all(all_stats):
+def _plot_all(all_stats, name):
     create_dirs([os.path.join(PLOT_PATH, DB_NAME)])
 
     all_stats.sort(key=lambda x: x[1], reverse=True)
@@ -52,20 +80,23 @@ def _plot_all(all_stats):
     x_pos = np.arange(len(classes))
     y_pos =  np.arange(max(durations) // 300 + 1) * 300.0
     
-    plt.figure(figsize=(20,10))
+    fig = plt.figure(figsize=(20,10))
     plt.bar(x_pos, durations)
 
-    plt.xticks(x_pos, classes, rotation=90)
+    plt.xticks(x_pos, classes)
     plt.yticks(y_pos, [_format_sec(sec) for sec in y_pos])
 
     plt.ylabel("Duration")
     plt.xlabel("Classes")
 
-    plt.title("All classes")
+    plt.title("All {}".format(name))
     plt.grid(axis="y")
 
-    fpath = os.path.join(PLOT_PATH, DB_NAME, "all.png")
+    fname = "all_{}.png".format(name)
+    fpath = os.path.join(PLOT_PATH, DB_NAME, fname)
     plt.savefig(fpath)   
+
+    plt.close(fig)
 
 def _plot_class(df, name, records):
     create_dirs([os.path.join(PLOT_PATH, DB_NAME, CLASSES_DIR)])
@@ -81,7 +112,7 @@ def _plot_class(df, name, records):
     x_pos = np.arange(len(records))
     y_pos = np.arange(16) * 120.0
     
-    plt.figure(figsize=(20,10))
+    fig = plt.figure(figsize=(20,10))
     plt.bar(x_pos, durations)
 
     plt.xticks(x_pos, records, rotation=90)
@@ -96,6 +127,7 @@ def _plot_class(df, name, records):
     fname = "{}.png".format(name)
     fpath = os.path.join(PLOT_PATH, DB_NAME, CLASSES_DIR, fname)
     plt.savefig(fpath)
+    plt.close(fig)
 
 def _load_raw_data():
     database = DatabaseProvider(DB_NAME)
@@ -132,19 +164,21 @@ def main():
     df = _load_raw_data()
     records = df.record.unique()
     
-    all_classes = []
+    all_beats = []
+    all_rythms = []
 
     for b in BEATS:
         beats = _filter(df, beats=b[0])
         _plot_class(beats, name=b[1], records=records)
-        all_classes.append((b[1], (beats.end - beats.start).sum() / FS))
+        all_beats.append((b[2], (beats.end - beats.start).sum() / FS))
     
     for r in RYTHMS:
         beats = _filter(df, rythm=r[0])
         _plot_class(beats, name=r[1], records=records)
-        all_classes.append((r[1], (beats.end - beats.start).sum() / FS))
+        all_rythms.append((r[2], (beats.end - beats.start).sum() / FS))
 
-    _plot_all(all_classes)
+    _plot_all(all_beats, "beats")
+    _plot_all(all_rythms, "rythms")
 
 if __name__ == "__main__":
     main()
