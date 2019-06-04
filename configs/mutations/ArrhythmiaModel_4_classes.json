@@ -1,0 +1,28 @@
+{
+    "hparams": {
+        "learning_rate": {
+            "range": [0.03, 0.05],
+            "logscale": true
+        },
+        "conv_layers": {
+            "options": [6]
+        },
+        "filters_num": {
+            "options": [16, 32]
+        },
+        "dense_layers": {
+            "options": [1, 2]
+        },
+        "dense_units": {
+            "options": [64, 128]
+        },
+        "dropout_rate": {
+            "range": [0.4, 0.75]
+        }
+    },
+    "params": {
+        "slice_window": {
+            "options": [1440]
+        }
+    }
+}

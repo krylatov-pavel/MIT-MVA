@@ -10,7 +10,6 @@ from utils.dirs import create_dirs
 
 DB_NAME = "mitdb"
 PLOT_PATH = "data\\stats"
-CLASSES_DIR = "classes"
 FS = 360
 BEATS = [
     #(["N", "·"], "Normal beat", "N"),
@@ -69,7 +68,7 @@ def _filter(df, rythm=None, beats=[]):
 def _format_sec(sec):
     return str(datetime.timedelta(seconds=sec)).split(".")[0]
 
-def _plot_all(all_stats, name):
+def _plot_all(all_stats, name, config):
     create_dirs([os.path.join(PLOT_PATH, DB_NAME)])
 
     all_stats.sort(key=lambda x: x[1], reverse=True)
@@ -92,14 +91,24 @@ def _plot_all(all_stats, name):
     plt.title("All {}".format(name))
     plt.grid(axis="y")
 
+    legend = []
+    for c in classes:
+        description = [d for d in config if d[2] == c][0]
+        legend.append("{} - {}".format(description[2], description[1]))
+    legend = "\n".join(legend)
+    props = dict(boxstyle='round', facecolor='wheat')
+    x = int(0.70 * len(classes))
+    y = int(0.5 * durations[0])
+    plt.text(x, y, legend, fontsize=14, bbox=props)
+
     fname = "all_{}.png".format(name)
     fpath = os.path.join(PLOT_PATH, DB_NAME, fname)
     plt.savefig(fpath)   
 
     plt.close(fig)
 
-def _plot_class(df, name, records):
-    create_dirs([os.path.join(PLOT_PATH, DB_NAME, CLASSES_DIR)])
+def _plot_class(df, dir, name, records):
+    create_dirs([os.path.join(PLOT_PATH, DB_NAME, dir)])
 
     durations = []
     
@@ -125,7 +134,7 @@ def _plot_class(df, name, records):
     plt.grid(axis="y")
 
     fname = "{}.png".format(name)
-    fpath = os.path.join(PLOT_PATH, DB_NAME, CLASSES_DIR, fname)
+    fpath = os.path.join(PLOT_PATH, DB_NAME, dir, fname)
     plt.savefig(fpath)
     plt.close(fig)
 
@@ -169,16 +178,16 @@ def main():
 
     for b in BEATS:
         beats = _filter(df, beats=b[0])
-        _plot_class(beats, name=b[1], records=records)
+        _plot_class(beats, dir="beats", name=b[1], records=records)
         all_beats.append((b[2], (beats.end - beats.start).sum() / FS))
     
     for r in RYTHMS:
         beats = _filter(df, rythm=r[0])
-        _plot_class(beats, name=r[1], records=records)
+        _plot_class(beats, dir="rythms", name=r[1], records=records)
         all_rythms.append((r[2], (beats.end - beats.start).sum() / FS))
 
-    _plot_all(all_beats, "beats")
-    _plot_all(all_rythms, "rythms")
+    _plot_all(all_beats, "beats", BEATS)
+    _plot_all(all_rythms, "rythms", RYTHMS)
 
 if __name__ == "__main__":
     main()
