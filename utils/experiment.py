@@ -23,13 +23,7 @@ class Experiment():
             plot_metrics(self.model_dir)
 
     def evaluate_accuracy(self, checkpoint_num=None):
-        if self.k == 2:
-            cm = self._evaluate_model(self.config, self.model_dir, checkpoint_num=checkpoint_num)
-        if self.k > 2:
-            cm = np.zeros((self.config.model.hparams.class_num, self.config.model.hparams.class_num))
-            for i in range(self.k):
-                directory = os.path.join(self.model_dir, "fold_{}".format(i))
-                cm += self._evaluate_model(self.config, directory, i, checkpoint_num=checkpoint_num)
+        cm = self.confusion_matrix(checkpoint_num)
 
         tp = cm.diagonal().sum()
         total = cm.sum()
@@ -37,8 +31,16 @@ class Experiment():
 
         print("Evaluated accuracy: ", accuracy)
 
-    def confusion_matrix(self):
-        pass
+    def confusion_matrix(self, checkpoint_num=None):
+        if self.k == 2:
+            cm = self._evaluate_model(self.config, self.model_dir, checkpoint_num=checkpoint_num)
+        if self.k > 2:
+            cm = np.zeros((self.config.model.hparams.class_num, self.config.model.hparams.class_num))
+            for i in range(self.k):
+                directory = os.path.join(self.model_dir, "fold_{}".format(i))
+                cm += self._evaluate_model(self.config, directory, i, checkpoint_num=checkpoint_num)
+        
+        return cm
 
     def _evaluate_model(self, config, model_dir, fold_num=None, checkpoint_num=None):
             model = get_class(config.model.name)(config.model.hparams, config.dataset.params)
