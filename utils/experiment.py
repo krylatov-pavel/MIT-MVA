@@ -22,8 +22,25 @@ class Experiment():
                 self._train_model(directory, i)
             plot_metrics(self.model_dir)
 
-    def evaluate_accuracy(self):
-        def _evaluate_model(config, model_dir, fold_num=None):
+    def evaluate_accuracy(self, checkpoint_num=None):
+        if self.k == 2:
+            cm = self._evaluate_model(self.config, self.model_dir, checkpoint_num=checkpoint_num)
+        if self.k > 2:
+            cm = np.zeros((self.config.model.hparams.class_num, self.config.model.hparams.class_num))
+            for i in range(self.k):
+                directory = os.path.join(self.model_dir, "fold_{}".format(i))
+                cm += self._evaluate_model(self.config, directory, i, checkpoint_num=checkpoint_num)
+
+        tp = cm.diagonal().sum()
+        total = cm.sum()
+        accuracy = tp / total
+
+        print("Evaluated accuracy: ", accuracy)
+
+    def confusion_matrix(self):
+        pass
+
+    def _evaluate_model(self, config, model_dir, fold_num=None, checkpoint_num=None):
             model = get_class(config.model.name)(config.model.hparams, config.dataset.params)
             dataset = get_class(config.dataset.name)(config.dataset.params)
 
@@ -37,27 +54,16 @@ class Experiment():
                 model_dir=model_dir
             )
 
-            predictions = list(estimator.predict(input_fn))
+            checkpoint_path = os.path.join(model_dir, "model.ckpt-{}".format(checkpoint_num)) if checkpoint_num else None 
+            predictions = list(estimator.predict(input_fn, checkpoint_path=checkpoint_path))
             predictions = [p["class_ids"][0] for p in predictions]
 
-            tp = np.count_nonzero(np.equal(predictions, y))
-            total = len(y)
+            cm = np.zeros((config.model.hparams.class_num, config.model.hparams.class_num))
 
-            return tp, total
+            for actual, predicted in zip(y, predictions):
+                cm[actual][predicted] += 1
 
-        tp, total = (0, 0)
-        if self.k == 2:
-            tp, total = _evaluate_model(self.config, self.model_dir)
-        if self.k > 2:
-            for i in range(self.k):
-                directory = os.path.join(self.model_dir, "fold_{}".format(i))
-                tp_curr, total_curr = _evaluate_model(self.config, directory, i)
-                tp += tp_curr
-                total += total_curr
-
-        accuracy = tp / total
-
-        print("Evaluated accuracy: ", accuracy)
+            return cm
 
     def validate_dataset(self):
         dataset = get_class(self.config.dataset.name)(self.config.dataset.params)
