@@ -67,23 +67,29 @@ def plot_metrics(model_dir):
     fig = plt.figure()
     plt.xlabel("steps")
     plt.ylabel("accuracy")
+
     plt.ylim(0.0, 1.0)
+    y_pos = np.arange(11) * 0.1
+    plt.yticks(y_pos, [str(int(percent * 100)) for percent in y_pos])
     
     for metric, color in metrics:
         m_mean = steps[metric].agg(np.mean)
         x, y = unzip_list(m_mean.iteritems())
+        alpha = 0.5
 
         if metric == "accuracy":
             idx_max = np.argmax(y)
             step = x[idx_max]
             max_accuracy = y[idx_max]
+            alpha = 1
             plt.text(0.05, 0.05, "max accuracy {:.3f} on step {}".format(max_accuracy, step))
 
-        plot, = plt.plot(x, y, color, label=metric)
+        plot, = plt.plot(x, y, color, alpha=alpha, label=metric)
         plots.append(plot)
 
     plt.legend(plots, [name for name, _ in metrics])
     plt.legend(loc="upper left")
+    plt.grid(axis="y")
 
     fig.savefig(os.path.join(model_dir, "plot.png"))
     plt.close(fig)
