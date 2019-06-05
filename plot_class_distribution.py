@@ -138,6 +138,46 @@ def _plot_class(df, dir, name, records):
     plt.savefig(fpath)
     plt.close(fig)
 
+def _plot_combinations(df, rhythm=None, beat=None):
+    if rhythm:
+        series = df.beat
+        dir = "rhythms"
+        title = "Combination of {} rhythm with beats".format(rhythm)
+    else:
+        series = df.rythm
+        dir = "beats"
+        title = "Combination of {} beat with rhythms".format(beat)
+
+    stats = list(series.value_counts(normalize=True).iteritems())
+    labels = [s[0] for s in stats]
+    values = [s[1] for s in stats]
+
+    x_pos = np.arange(len(labels))
+    y_pos = np.arange(11) * 0.1
+    
+    fig = plt.figure(figsize=(15,7))
+
+    plt.bar(x_pos, values, width=0.9)
+
+    plt.xlim((-1, 15))
+    plt.ylim((0, 1.0))
+
+    plt.xticks(x_pos, labels)
+    plt.yticks(y_pos, [str(int(percent * 100)) for percent in y_pos])
+
+    plt.ylabel("Percent(%)")
+    plt.xlabel(dir)
+
+    plt.title(title)
+    plt.grid(axis="y")
+
+    fname = "{}.png".format(rhythm or beat)
+    path = os.path.join(PLOT_PATH, DB_NAME, "combinations", dir)
+    create_dirs([path])
+    fpath = os.path.join(path, fname)
+    plt.savefig(fpath)
+    plt.close(fig)        
+
 def _load_raw_data():
     database = DatabaseProvider(DB_NAME)
     print("loading raw data...")
@@ -179,11 +219,13 @@ def main():
     for b in BEATS:
         beats = _filter(df, beats=b[0])
         _plot_class(beats, dir="beats", name=b[1], records=records)
+        _plot_combinations(beats, beat=b[2])
         all_beats.append((b[2], (beats.end - beats.start).sum() / FS))
     
     for r in RYTHMS:
         beats = _filter(df, rythm=r[0])
         _plot_class(beats, dir="rythms", name=r[1], records=records)
+        _plot_combinations(beats, rhythm=r[2])
         all_rythms.append((r[2], (beats.end - beats.start).sum() / FS))
 
     _plot_all(all_beats, "beats", BEATS)
