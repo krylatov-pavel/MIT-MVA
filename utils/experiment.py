@@ -62,8 +62,8 @@ class Experiment():
 
             cm = np.zeros((config.model.hparams.class_num, config.model.hparams.class_num))
 
-            for actual, predicted in zip(y, predictions):
-                cm[actual][predicted] += 1
+            for predicted, actual  in zip(predictions, y):
+                cm[predicted][actual] += 1
 
             return cm
 
