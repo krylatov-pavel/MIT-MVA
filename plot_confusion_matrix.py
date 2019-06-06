@@ -4,7 +4,16 @@ from utils.experiment import Experiment
 import seaborn as sn
 import numpy as np
 import pandas as pd
+import os
 import matplotlib.pyplot as plt
+
+LEGEND = {
+    "N": "Normal sinus rhythm",
+    "R": "Right bundle branch block beat",
+    "B": "Ventricular bigeminy",
+    "SBR": "Sinus bradycardia",
+    "AFIB": "Atrial fibrillation"
+}
 
 def main():
     parser = argparse.ArgumentParser()
@@ -23,9 +32,13 @@ def main():
                 
         df_cm = pd.DataFrame(cm, index=labels, columns=labels)
         plt.figure(figsize = (10,7))
-        sn.heatmap(df_cm, annot=True)
-        plt.show()
-        
+        sn.heatmap(df_cm, annot=True, cmap='Blues', fmt='g')
+
+        plt.ylabel("Predicted")
+        plt.xlabel("Actual")
+
+        fpath = os.path.join(config.model_dir, "confusion_matrix.png")
+        plt.savefig(fpath)
     else:
         print("configuration file name is required. use -h for help")
 
