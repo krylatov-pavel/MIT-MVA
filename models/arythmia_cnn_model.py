@@ -1,6 +1,5 @@
 import tensorflow as tf
 from models.base_mit_model import BaseMitModel
-from utils.tf_utils import normalize_inputs
 
 class ArythmiaCNNModel(BaseMitModel):
     def _network_fn(self, features, mode, scope="MITConvNet"):

@@ -1,7 +1,6 @@
 import tensorflow as tf
 import math
 from models.base_mit_model import BaseMitModel
-from utils.tf_utils import normalize_inputs
 
 class ArythmiaResnetPoolingModel(BaseMitModel):
     def __init__(self, hparams, dataset_params):
