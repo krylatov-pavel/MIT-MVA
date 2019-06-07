@@ -5,7 +5,13 @@ class ArythmiaCNNModelv4(BaseMitModel):
     def _network_fn(self, features, mode, scope="MITConvNet"):
         """
         Input size: 1456
-        Reduce kernel size by 2 every conv layer, down to 3
+        conv1 9x64
+        conv2 9x64
+        max_pool1 3
+        conv3 7x96
+        conv4 7x96
+        max_pool2 3
+
         """
         training = mode == tf.estimator.ModeKeys.TRAIN
         pre_logits = features
@@ -14,51 +20,58 @@ class ArythmiaCNNModelv4(BaseMitModel):
         filters_step = self._get_hparam("filters_step", default_value=32)
         use_batchnorm = self._get_hparam("use_batch_norm", default_value=False)
 
+        conv_layer = 0
+        pool_layer = 0
+
         #inputs 1456x1
+        conv_layer += 1
         pre_logits = tf.layers.conv1d(pre_logits,
             filters=filters_num,
             kernel_size=9,
             strides=1,
             padding="valid",
             activation=None,
-            name="conv{}".format(1)
+            name="conv{}".format(conv_layer)
         )
 
         if use_batchnorm:
             pre_logits = tf.layers.batch_normalization(pre_logits,
                 training=training,
-                name="conv{}_batch_norm".format(1)
+                name="conv{}_batch_norm".format(conv_layer)
             )
         
-        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(1))
+        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(conv_layer))
         
         #inputs 1448x64
+        conv_layer += 1
         pre_logits = tf.layers.conv1d(pre_logits,
             filters=filters_num,
             kernel_size=9,
             strides=1,
             padding="valid",
             activation=None,
-            name="conv{}".format(2)
+            name="conv{}".format(conv_layer)
         )
 
         if use_batchnorm:
             pre_logits = tf.layers.batch_normalization(pre_logits,
                 training=training,
-                name="conv{}_batch_norm".format(2)
+                name="conv{}_batch_norm".format(conv_layer)
             )
 
-        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(2))
+        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(conv_layer))
 
         #inputs 1440x64
+        pool_layer += 1
         pre_logits = tf.layers.max_pooling1d(pre_logits,
             pool_size=3,
             strides=3,
             padding="valid",
-            name="pool{}".format(1)
+            name="pool{}".format(pool_layer)
         )
 
         #inputs 480x64
+        conv_layer += 1
         filters_num = filters_num + filters_step
         pre_logits = tf.layers.conv1d(pre_logits,
             filters=filters_num,
@@ -66,53 +79,76 @@ class ArythmiaCNNModelv4(BaseMitModel):
             strides=1,
             padding="valid",
             activation=None,
-            name="conv{}".format(3)
+            name="conv{}".format(conv_layer)
         )
 
         if use_batchnorm:
             pre_logits = tf.layers.batch_normalization(pre_logits,
                 training=training,
-                name="conv{}_batch_norm".format(3)
+                name="conv{}_batch_norm".format(conv_layer)
             )
 
-        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(3))
+        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(conv_layer))
 
-        #inputs 474x96
+        #inputs 474x64
+        conv_layer += 1
+        pre_logits = tf.layers.conv1d(pre_logits,
+            filters=filters_num,
+            kernel_size=7,
+            strides=1,
+            padding="valid",
+            activation=None,
+            name="conv{}".format(conv_layer)
+        )
+
+        if use_batchnorm:
+            pre_logits = tf.layers.batch_normalization(pre_logits,
+                training=training,
+                name="conv{}_batch_norm".format(conv_layer)
+            )
+
+        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(conv_layer))
+
+        #inputs 468x96
+        pool_layer += 1
         pre_logits = tf.layers.max_pooling1d(pre_logits,
             pool_size=3,
             strides=3,
             padding="valid",
-            name="pool{}".format(2)
+            name="pool{}".format(1)
         )
 
-        #inputs 158x96
+        #inputs 156x96
         filters_num = filters_num + filters_step
+        conv_layer += 1
         pre_logits = tf.layers.conv1d(pre_logits,
             filters=filters_num,
             kernel_size=5,
             strides=1,
             padding="valid",
             activation=None,
-            name="conv{}".format(4)
+            name="conv{}".format(conv_layer)
         )
 
         if use_batchnorm:
             pre_logits = tf.layers.batch_normalization(pre_logits,
                 training=training,
-                name="conv{}_batch_norm".format(4)
+                name="conv{}_batch_norm".format(conv_layer)
             )
 
-        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(4))
+        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(conv_layer))
 
-        #inputs 154x128
+        #inputs 152x128
+        pool_layer += 1
         pre_logits = tf.layers.max_pooling1d(pre_logits,
             pool_size=3,
             strides=3,
             padding="same",
-            name="pool{}".format(3)
+            name="pool{}".format(pool_layer)
         )
 
-        #inputs 52x128
+        #inputs 51x128
+        conv_layer += 1
         filters_num = filters_num + filters_step
         pre_logits = tf.layers.conv1d(pre_logits,
             filters=filters_num,
@@ -120,26 +156,28 @@ class ArythmiaCNNModelv4(BaseMitModel):
             strides=1,
             padding="valid",
             activation=None,
-            name="conv{}".format(5)
+            name="conv{}".format(conv_layer)
         )
 
         if use_batchnorm:
             pre_logits = tf.layers.batch_normalization(pre_logits,
                 training=training,
-                name="conv{}_batch_norm".format(5)
+                name="conv{}_batch_norm".format(conv_layer)
             )
 
-        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(5))
+        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(conv_layer))
 
-        #inputs 48x160
+        #inputs 47x160
+        pool_layer += 1
         pre_logits = tf.layers.max_pooling1d(pre_logits,
             pool_size=3,
             strides=3,
-            padding="valid",
-            name="pool{}".format(4)
+            padding="same",
+            name="pool{}".format(pool_layer)
         )
 
         #inputs 16x160
+        conv_layer += 1
         filters_num = filters_num + filters_step
         pre_logits = tf.layers.conv1d(pre_logits,
             filters=filters_num,
@@ -147,26 +185,28 @@ class ArythmiaCNNModelv4(BaseMitModel):
             strides=1,
             padding="valid",
             activation=None,
-            name="conv{}".format(6)
+            name="conv{}".format(conv_layer)
         )
 
         if use_batchnorm:
             pre_logits = tf.layers.batch_normalization(pre_logits,
                 training=training,
-                name="conv{}_batch_norm".format(6)
+                name="conv{}_batch_norm".format(conv_layer)
             )
 
-        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(6))
+        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(conv_layer))
 
         #inputs 12x192
+        pool_layer += 1
         pre_logits = tf.layers.max_pooling1d(pre_logits,
             pool_size=2,
             strides=2,
             padding="valid",
-            name="pool{}".format(5)
+            name="pool{}".format(pool_layer)
         )
 
         #inputs 6x192
+        conv_layer += 1
         filters_num = filters_num + filters_step
         pre_logits = tf.layers.conv1d(pre_logits,
             filters=filters_num,
@@ -174,25 +214,27 @@ class ArythmiaCNNModelv4(BaseMitModel):
             strides=1,
             padding="valid",
             activation=None,
-            name="conv{}".format(7)
+            name="conv{}".format(conv_layer)
         )
 
         if use_batchnorm:
             pre_logits = tf.layers.batch_normalization(pre_logits,
                 training=training,
-                name="conv{}_batch_norm".format(7)
+                name="conv{}_batch_norm".format(conv_layer)
             )
 
-        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(7))
+        pre_logits = tf.nn.relu(pre_logits, name="conv{}_activation".format(conv_layer))
 
         #inputs 4x224
-        pre_logits = tf.layers.max_pooling1d(pre_logits,
+        pool_layer += 1
+        pre_logits = tf.layers.average_pooling1d(pre_logits,
             pool_size=4,
             strides=4,
             padding="valid",
-            name="pool{}".format(6)
+            name="pool{}".format(pool_layer)
         )
 
+        #inputs 1x224
         pre_logits = pre_logits = tf.layers.flatten(pre_logits, name="flatten")
          
         dense_layers = self._get_hparam("dense_layers", 0)

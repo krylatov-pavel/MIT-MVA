@@ -6,7 +6,7 @@
             "class_num": 4,
             "learning_rate": 0.046511,
             "num_epochs": 4000,
-            "conv_layers": 7,
+            "conv_layers": 8,
             "filters_num": 64,
             "filters_step": 32,
             "use_batch_norm": true,
