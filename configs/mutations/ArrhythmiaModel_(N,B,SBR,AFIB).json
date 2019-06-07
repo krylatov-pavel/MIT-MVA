@@ -1,0 +1,24 @@
+{
+    "hparams": {
+        "learning_rate": {
+            "range": [0.003, 0.01],
+            "logscale": true
+        },
+        "filters_num": {
+            "options": [64, 96]
+        },
+        "filters_step": {
+            "options": [32, 64]
+        },
+        "dense_layers": {
+            "options": [2]
+        },
+        "dense_units": {
+            "options": [128, 256, 512]
+        },
+        "dropout_rate": {
+            "range": [0.4, 0.75]
+        }
+    },
+    "params": {}
+}

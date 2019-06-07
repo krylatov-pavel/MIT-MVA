@@ -1,0 +1,72 @@
+{
+    "model": {
+        "name": "models.arythmia_cnn_model_v4.ArythmiaCNNModelv4",
+        "experiment": "N_B_SBR_AFIB",
+        "hparams": {
+            "class_num": 4,
+            "learning_rate": 0.046511,
+            "num_epochs": 4000,
+            "conv_layers": 7,
+            "filters_num": 64,
+            "filters_step": 32,
+            "use_batch_norm": true,
+            "dense_layers": 2,
+            "dense_units": 256,
+            "use_dropout": true,
+            "dropout_rate": 0.332
+        }
+    },
+    "dataset" : {
+        "name" : "datasets.Arythmia.wave_dataset.ArythmiaWaveDataset",
+        "params": {
+            "db_name": "mitdb",
+            "experiment": "4-fold_(N,B,SBR,AFIB)_equalize_AFIB_0.25overlap",
+            "bypass_cache": false,
+            "slice_window": 1456,
+            "slice_overlap": 0.25,
+            "rythm_filter": [{
+                "name": "N",
+                "rythm": "(N",
+                "beats": [".", "N"],
+                "use_augmentation": false
+            }, {
+                "name": "B",
+                "rythm": "(B",
+                "beats": [],
+                "use_augmentation": true
+            },{
+                "name": "SBR",
+                "rythm": "(SBR",
+                "beats": [],
+                "use_augmentation": true,
+                "allow_spread": true
+            }, {
+                "name": "AFIB",
+                "rythm": "(AFIB",
+                "beats": [],
+                "use_augmentation": false
+            }],
+            "label_map": {
+                "N": 0,
+                "B": 1,
+                "SBR": 2,
+                "AFIB": 3
+            },
+            "equalize_classes": {
+                "N": true,
+                "B": false,
+                "SBR": false,
+                "AFIB": true
+            },
+            "rescale": false,
+            "normalize": true,      
+            "rythm_map": {},
+            "split_ratio": [0.25, 0.25, 0.25, 0.25],
+            "test_set_size": 0.0,
+            "train_batch_size": 32,
+            "eval_batch_size": 100,
+            "include_augmented": false
+        }
+    },
+    "max_to_keep": 5
+}
