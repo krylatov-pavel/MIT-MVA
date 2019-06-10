@@ -1,6 +1,6 @@
 {
     "model": {
-        "name": "models.arythmia_cnn_model_v4.ArythmiaCNNModelv4",
+        "name": "models.arythmia_cnn_model_v5.ArythmiaCNNModelv5",
         "experiment": "N_B_SBR_AFIB",
         "hparams": {
             "class_num": 4,
@@ -9,8 +9,10 @@
             "conv_layers": 8,
             "filters_num": 64,
             "filters_step": 32,
+            "kernel_size": 7,
+            "pool_size": 3,
             "use_batch_norm": true,
-            "dense_layers": 2,
+            "dense_layers": 1,
             "dense_units": 256,
             "use_dropout": true,
             "dropout_rate": 0.332
@@ -22,7 +24,7 @@
             "db_name": "mitdb",
             "experiment": "4-fold_(N,B,SBR,AFIB)_equalize_AFIB_0.25overlap",
             "bypass_cache": false,
-            "slice_window": 1456,
+            "slice_window": 1440,
             "slice_overlap": 0.25,
             "rythm_filter": [{
                 "name": "N",
