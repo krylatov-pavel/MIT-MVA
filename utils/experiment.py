@@ -126,5 +126,9 @@ class Experiment():
         
         tf.logging.set_verbosity(tf.logging.ERROR)
         tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
+
+        if model.description:
+            with open(os.path.join(model_dir, "network.txt"), "w") as f:
+                f.write(model.description)
     
         return

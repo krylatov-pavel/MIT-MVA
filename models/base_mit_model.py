@@ -9,6 +9,11 @@ class BaseMitModel(BaseModel):
     def __init__(self, hparams, dataset_params):
         self._hparams = hparams
         self._label_map = dataset_params["label_map"]
+        self._description = None
+
+    @property
+    def description(self):
+        return self._description or ""
     
     def build_model_fn(self):
         def model_fn(features, labels, mode, config):
