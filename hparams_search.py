@@ -46,6 +46,13 @@ def search_stats(directory):
 
     print(stats)
 
+    print("accuracy max {:.3f}, mean {:.3f}, std {:.3f}".format(
+        stats.accuracy.max(),
+        stats.accuracy.mean(),
+        stats.accuracy.std()
+    ))
+    
+
 def random_search():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", "-c", help="Config file name (wihout extension)", type=str)

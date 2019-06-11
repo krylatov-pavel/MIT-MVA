@@ -1,21 +1,21 @@
 {
     "model": {
         "name": "models.arythmia_cnn_model_v5.ArythmiaCNNModelv5",
-        "experiment": "N_B_SBR_AFIB",
+        "experiment": "N_B_SBR_AFIB_model_stability_14",
         "hparams": {
             "class_num": 4,
-            "learning_rate": 0.046511,
+            "learning_rate": 0.001444422940073491,
             "num_epochs": 4000,
             "conv_layers": 8,
             "filters_num": 64,
-            "filters_step": 32,
+            "filters_step": 64,
             "kernel_size": 7,
             "pool_size": 3,
             "use_batch_norm": true,
             "dense_layers": 1,
-            "dense_units": 256,
+            "dense_units": 512,
             "use_dropout": true,
-            "dropout_rate": 0.332
+            "dropout_rate": 0.5256155474817464
         }
     },
     "dataset" : {
